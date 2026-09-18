@@ -1,5 +1,23 @@
+# Dependencies
+node_modules/
+jspm_packages/
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Vite
+.vite/
+vite.config.*.timestamp-*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,23 +25,32 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
 
-# Editor directories and files
-.vscode/*
+# Cache
+.cache/
+.parcel-cache/
+.npm/
+.eslintcache
+.stylelintcache
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor
+.vscode/
 !.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.idea/
 
-# Environment variables
-.env
-.env.*
-!.env.example
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tgz
+*.seed
+*.pid
+*.pid.lock
