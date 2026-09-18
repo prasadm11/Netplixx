@@ -1,0 +1,183 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Search, Settings, Menu, X } from 'lucide-react';
+import SearchModal from './SearchModal';
+
+const Navbar: React.FC = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Global hotkey Ctrl+K or Cmd+K or / to open search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+      if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  const navLinks = [
+    { label: 'Home', path: '/' },
+    { label: 'Movies', path: '/browse/movie' },
+    { label: 'TV Shows', path: '/browse/tv' },
+    { label: 'Anime', path: '/anime', badge: 'NEW' },
+    { label: 'Discover', path: '/discover' },
+    { label: 'Shorts', path: '/shorts', badge: 'REELS' },
+    { label: 'My Library', path: '/lists' }
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
+  return (
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled
+          ? 'apple-glass-nav py-3.5 shadow-2xl'
+          : 'bg-gradient-to-b from-black/90 via-black/40 to-transparent py-5'
+          }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Apple TV-style Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center font-black tracking-tighter text-sm shadow-apple-button group-hover:scale-105 transition-transform duration-300">
+              <span className="font-display font-extrabold text-[15px] leading-none">tv</span>
+            </div>
+            <div className="flex items-baseline gap-1.5 leading-none">
+              <span className="text-lg font-bold tracking-tight text-white font-display">
+                Netplix<span className="text-[#2997ff] font-light text-base">+</span>
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Apple-style Segmented Nav */}
+          <nav className="hidden md:flex items-center gap-1 bg-white/[0.06] backdrop-blur-2xl px-2 py-1.5 rounded-full border border-white/[0.08] shadow-apple-glass">
+            {navLinks.map(link => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-normal transition-all duration-300 flex items-center gap-1.5 relative ${active
+                    ? 'bg-white text-black font-semibold shadow-sm'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/10'
+                    }`}
+                >
+                  {link.label}
+                  {link.badge && (
+                    <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-full uppercase tracking-wider ${active ? 'bg-black text-white' : 'bg-white/20 text-white'
+                      }`}>
+                      {link.badge}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right Action Icons & Spotlight Search */}
+          <div className="flex items-center gap-2 sm:gap-3">
+
+            {/* Apple Spotlight Search Trigger */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] hover:border-white/25 px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all text-xs font-medium backdrop-blur-xl group"
+              title="Search Apple Originals, Movies & Series (⌘K)"
+            >
+              <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors" />
+              <span className="hidden sm:inline text-zinc-300">Search</span>
+              <kbd className="hidden lg:inline-flex items-center gap-0.5 bg-white/10 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-white/10">
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Settings */}
+            <Link
+              to="/settings"
+              className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-zinc-300 hover:text-white transition-colors border border-white/[0.1] backdrop-blur-xl"
+              title="Player Settings & Preferences"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-zinc-300 hover:text-white transition-colors border border-white/[0.1]"
+              aria-label="Toggle Navigation Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Dropdown Menu with Frosted Glass */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden apple-glass border-t border-white/10 mt-3 px-4 pt-3 pb-6 animate-slide-up mx-3 rounded-2xl">
+            <nav className="flex flex-col gap-1.5">
+              {navLinks.map(link => {
+                const active = isActive(link.path);
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${active
+                      ? 'bg-white text-black font-semibold'
+                      : 'text-zinc-300 hover:bg-white/10'
+                      }`}
+                  >
+                    <span>{link.label}</span>
+                    {link.badge && (
+                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                        {link.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+              <Link
+                to="/settings"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-300 hover:bg-white/10 border-t border-white/10 mt-1 pt-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Preferences</span>
+              </Link>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* Apple Spotlight Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+
+    </>
+  );
+};
+
+export default Navbar;
+
