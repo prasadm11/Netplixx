@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import MobileTabBar from './components/MobileTabBar';
 import Footer from './components/Footer';
 
 import HomePage from './pages/HomePage';
@@ -36,13 +37,14 @@ const App: React.FC = () => {
   const isWatchPage = location.pathname.startsWith('/watch/');
   const isShorts = location.pathname.startsWith('/shorts');
   const hideNavbar = isDetailPage || isWatchPage || isShorts;
+  const hideTabBar = isWatchPage || isShorts;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white selection:bg-[#95FF50] selection:text-black">
       <ScrollToTop />
       {!hideNavbar && <Navbar />}
 
-      <main className="flex-1">
+      <main className={`flex-1 ${!hideTabBar ? 'pb-20 md:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/discover" element={<DiscoverPage />} />
@@ -68,6 +70,7 @@ const App: React.FC = () => {
       </main>
 
       {!isShorts && <Footer />}
+      {!hideTabBar && <MobileTabBar />}
     </div>
   );
 };

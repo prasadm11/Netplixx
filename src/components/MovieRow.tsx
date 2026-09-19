@@ -71,7 +71,7 @@ const MovieRow: React.FC<MovieRowProps> = ({ title, items, seeAllLink, subtitle,
         {/* Card Scroll Track with Apple Padding */}
         <div
           ref={rowRef}
-          className="flex items-stretch gap-3 sm:gap-4 lg:gap-5 overflow-x-auto no-scrollbar scroll-smooth py-3 px-2"
+          className="flex items-stretch gap-3 sm:gap-4 lg:gap-5 overflow-x-auto no-scrollbar scroll-smooth py-3 px-2 ios-scroll"
         >
           {items.map(item => (
             <div

@@ -137,7 +137,7 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
   return (
     <div 
       ref={heroRef}
-      className="relative w-full h-[85vh] sm:h-[90vh] min-h-[600px] max-h-[920px] overflow-hidden bg-black select-none flex flex-col justify-end"
+      className="relative w-full h-[74vh] sm:h-[84vh] md:h-[88vh] min-h-[480px] max-h-[920px] overflow-hidden bg-black select-none flex flex-col justify-end"
     >
       {/* 1. CINEMATIC FULL-BLEED BACKGROUND TRAILER OR BACKDROP */}
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -167,18 +167,18 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
         ) : null}
 
         {/* Ambient Gradients matching Apple TV (Keep top 70% completely clear & vibrant) */}
-        <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black via-black/80 via-35% to-transparent pointer-events-none" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 via-black/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black via-black/85 via-35% to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/60 via-black/15 to-transparent pointer-events-none" />
       </div>
 
-      {/* 2. APPLE TV TOP BAR (Clean, Dedicated, No Overlapping Icons!) */}
-      <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 sm:px-10 py-5 transition-all duration-300 ${
-        isScrolled ? 'bg-black/75 backdrop-blur-2xl border-b border-white/[0.08] shadow-2xl py-3.5' : 'bg-transparent'
+      {/* 2. APPLE TV TOP BAR (Notch and Dynamic Island Safe) */}
+      <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-10 py-3 sm:py-5 transition-all duration-300 pt-[max(env(safe-area-inset-top),0.85rem)] ${
+        isScrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-white/[0.08] shadow-2xl' : 'bg-transparent'
       }`}>
         {/* Left: Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/75 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg group"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-lg group"
           title="Back"
           aria-label="Back"
         >
@@ -186,15 +186,15 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
         </button>
 
         {/* Right: Sound, Fullscreen, Share */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Sound / Mute Toggle Button */}
           {trailerKey && (
             <button
               onClick={handleToggleMute}
-              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full border backdrop-blur-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg ${
+              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full border backdrop-blur-xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-lg ${
                 !isMuted 
                   ? 'bg-white text-black border-white' 
-                  : 'bg-black/45 hover:bg-black/75 text-white/90 hover:text-white border-white/15'
+                  : 'bg-black/50 hover:bg-black/80 text-white/90 hover:text-white border-white/15'
               }`}
               title={isMuted ? 'Unmute Trailer Audio' : 'Mute Audio'}
               aria-label="Toggle Audio"
@@ -206,7 +206,7 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
           {/* Fullscreen / Expand Video Button */}
           <button
             onClick={handleFullscreen}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/75 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-lg"
             title="Fullscreen Video"
             aria-label="Fullscreen"
           >
@@ -217,7 +217,7 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
           <div className="relative">
             <button
               onClick={handleShare}
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/45 hover:bg-black/75 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 hover:bg-black/80 text-white/90 hover:text-white border border-white/15 backdrop-blur-xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-lg"
               title="Share"
               aria-label="Share"
             >
@@ -233,11 +233,11 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
       </header>
 
       {/* 3. HERO OVERLAY CONTENT (Compact, Anchored to Bottom Lower Third) */}
-      <div className="relative z-20 w-full max-w-[1720px] mx-auto px-6 sm:px-12 lg:px-16 pb-6 sm:pb-8 lg:pb-10">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 lg:gap-8">
+      <div className="relative z-20 w-full max-w-[1720px] mx-auto px-4 sm:px-12 lg:px-16 pb-5 sm:pb-8 lg:pb-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 sm:gap-5 lg:gap-8">
           
           {/* Left Column: Title, Metadata, Synopsis, Action Buttons */}
-          <div className="max-w-2xl flex flex-col items-start">
+          <div className="w-full max-w-2xl flex flex-col items-start">
             
             {/* Optional Status Pill Badge */}
             {badgeText && (
@@ -252,7 +252,7 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
             </h1>
 
             {/* Sub-row: TV Show / Movie • Genres • Rating Box • Match */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-zinc-300 mb-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs font-medium text-zinc-300 mb-2">
               <span>{mediaType === 'tv' ? 'TV Show' : 'Movie'}</span>
               
               {genres.length > 0 && (
@@ -292,7 +292,7 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
             </div>
 
             {/* Clean Real Metadata Row (Year, Duration, Status) */}
-            <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-zinc-400 mb-4 font-medium">
+            <div className="flex flex-wrap items-center gap-2 text-[11px] sm:text-xs text-zinc-400 mb-3 sm:mb-4 font-medium">
               {year && <span>{year}</span>}
               {year && durationText && <span className="text-zinc-600">•</span>}
               {durationText && <span>{durationText}</span>}
@@ -304,41 +304,43 @@ const AppleTvHero: React.FC<AppleTvHeroProps> = ({
               )}
             </div>
 
-            {/* Action Buttons Row (Matching Apple TV layout) */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            {/* Action Buttons Row (Native Apple TV layout on iOS) */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
               {/* Primary Watch / Play Button */}
               <button
                 onClick={onPlay}
-                className="px-6 py-2.5 sm:px-7 sm:py-3 rounded-full font-bold text-xs sm:text-sm bg-white text-black hover:bg-[#e5e5ea] flex items-center gap-2 shadow-[0_6px_20px_rgba(255,255,255,0.25)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full sm:w-auto px-6 py-3 rounded-full font-bold text-xs sm:text-sm bg-white text-black hover:bg-[#e5e5ea] flex items-center justify-center gap-2 shadow-[0_6px_20px_rgba(255,255,255,0.25)] transition-all duration-200 active:scale-[0.98]"
               >
                 <Play className="w-4 h-4 fill-black ml-0.5" />
                 <span>{playButtonText || (mediaType === 'tv' ? 'Play Episode 1' : 'Play Movie')}</span>
               </button>
 
-              {/* Secondary Trailer Button */}
-              {trailerKey && onOpenTrailerModal && (
-                <button
-                  onClick={onOpenTrailerModal}
-                  className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-full font-semibold text-xs sm:text-sm bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-xl flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <Video className="w-4 h-4 text-zinc-200" />
-                  <span>Watch Trailer</span>
-                </button>
-              )}
+              <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                {/* Secondary Trailer Button */}
+                {trailerKey && onOpenTrailerModal && (
+                  <button
+                    onClick={onOpenTrailerModal}
+                    className="flex-1 sm:flex-initial px-5 py-3 rounded-full font-semibold text-xs sm:text-sm bg-white/15 hover:bg-white/25 text-white border border-white/20 backdrop-blur-xl flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98]"
+                  >
+                    <Video className="w-4 h-4 text-zinc-200" />
+                    <span>Watch Trailer</span>
+                  </button>
+                )}
 
-              {/* Watchlist Circle Button */}
-              <button
-                onClick={onToggleWatchlist}
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full border backdrop-blur-xl flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shadow-md ${
-                  inWatchlist
-                    ? 'bg-white text-black border-white shadow-[0_4px_16px_rgba(255,255,255,0.3)]'
-                    : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
-                }`}
-                title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                aria-label="Watchlist Toggle"
-              >
-                {inWatchlist ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Plus className="w-4 h-4" />}
-              </button>
+                {/* Watchlist Circle Button */}
+                <button
+                  onClick={onToggleWatchlist}
+                  className={`w-11 h-11 sm:w-10 sm:h-10 shrink-0 rounded-full border backdrop-blur-xl flex items-center justify-center transition-all duration-200 active:scale-90 shadow-md ${
+                    inWatchlist
+                      ? 'bg-white text-black border-white shadow-[0_4px_16px_rgba(255,255,255,0.3)]'
+                      : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+                  }`}
+                  title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                  aria-label="Watchlist Toggle"
+                >
+                  {inWatchlist ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Plus className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Settings, Menu, X } from 'lucide-react';
+import { Search, Settings } from 'lucide-react';
 import SearchModal from './SearchModal';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -33,11 +32,6 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
-
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Movies', path: '/browse/movie' },
@@ -57,9 +51,9 @@ const Navbar: React.FC = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled
-          ? 'apple-glass-nav py-3.5 shadow-2xl'
-          : 'bg-gradient-to-b from-black/90 via-black/40 to-transparent py-5'
-          }`}
+          ? 'apple-glass-nav py-3 sm:py-3.5 shadow-2xl'
+          : 'bg-gradient-to-b from-black/90 via-black/40 to-transparent py-4 sm:py-5'
+          } pt-[max(env(safe-area-inset-top),0.75rem)]`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Apple TV-style Logo */}
@@ -74,7 +68,7 @@ const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Apple-style Segmented Nav */}
+          {/* Desktop Apple-style Segmented Nav (hidden on mobile, mobile uses iOS TabBar) */}
           <nav className="hidden md:flex items-center gap-1 bg-white/[0.06] backdrop-blur-2xl px-2 py-1.5 rounded-full border border-white/[0.08] shadow-apple-glass">
             {navLinks.map(link => {
               const active = isActive(link.path);
@@ -99,14 +93,14 @@ const Navbar: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Action Icons & Spotlight Search */}
+          {/* Right Action Icons: Spotlight Search & Settings */}
           <div className="flex items-center gap-2 sm:gap-3">
-
             {/* Apple Spotlight Search Trigger */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] hover:border-white/25 px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all text-xs font-medium backdrop-blur-xl group"
+              className="flex items-center gap-2 bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] hover:border-white/25 px-3 sm:px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all text-xs font-medium backdrop-blur-xl group"
               title="Search Apple Originals, Movies & Series (⌘K)"
+              aria-label="Search"
             >
               <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors" />
               <span className="hidden sm:inline text-zinc-300">Search</span>
@@ -115,60 +109,17 @@ const Navbar: React.FC = () => {
               </kbd>
             </button>
 
-            {/* Settings */}
+            {/* Settings / Preferences */}
             <Link
               to="/settings"
-              className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-zinc-300 hover:text-white transition-colors border border-white/[0.1] backdrop-blur-xl"
+              className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 text-zinc-300 hover:text-white transition-all border border-white/[0.1] backdrop-blur-xl"
               title="Player Settings & Preferences"
+              aria-label="Settings"
             >
               <Settings className="w-4 h-4" />
             </Link>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] text-zinc-300 hover:text-white transition-colors border border-white/[0.1]"
-              aria-label="Toggle Navigation Menu"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Dropdown Menu with Frosted Glass */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden apple-glass border-t border-white/10 mt-3 px-4 pt-3 pb-6 animate-slide-up mx-3 rounded-2xl">
-            <nav className="flex flex-col gap-1.5">
-              {navLinks.map(link => {
-                const active = isActive(link.path);
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${active
-                      ? 'bg-white text-black font-semibold'
-                      : 'text-zinc-300 hover:bg-white/10'
-                      }`}
-                  >
-                    <span>{link.label}</span>
-                    {link.badge && (
-                      <span className="bg-white/20 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-              <Link
-                to="/settings"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-zinc-300 hover:bg-white/10 border-t border-white/10 mt-1 pt-2"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Preferences</span>
-              </Link>
-            </nav>
-          </div>
-        )}
       </header>
 
       {/* Apple Spotlight Search Modal */}

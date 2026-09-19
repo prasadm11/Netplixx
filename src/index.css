@@ -114,3 +114,26 @@
   mask-image: linear-gradient(to right, black 40%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, black 40%, transparent 100%);
 }
+
+/* iOS Safe Area & Native Touch Utilities */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 1rem);
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+/* iOS Momentum Scrolling */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific enhancements */
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+}

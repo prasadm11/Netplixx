@@ -78,7 +78,7 @@ const Top10Row: React.FC<Top10RowProps> = ({
       {/* Top 10 Horizontal Scrollable Carousel */}
       <div
         ref={rowRef}
-        className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-4 scroll-smooth"
+        className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-4 scroll-smooth ios-scroll"
       >
         {top10.map((item, index) => {
           const rank = index + 1;

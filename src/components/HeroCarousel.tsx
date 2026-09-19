@@ -102,46 +102,62 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
 
 
           {/* Cinematic Large Title */}
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-none mb-3 font-display drop-shadow-lg">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display drop-shadow-lg">
             {title}
           </h1>
 
           {/* Tagline / Overview */}
-          <p className="text-zinc-300 text-sm sm:text-base line-clamp-3 mb-6 leading-relaxed max-w-xl font-normal drop-shadow">
+          <p className="text-zinc-300 text-xs sm:text-base line-clamp-2 sm:line-clamp-3 mb-4 sm:mb-6 leading-relaxed max-w-xl font-normal drop-shadow">
             {current.overview || "Experience this critically acclaimed title in ultra-high definition with immersive spatial audio on Netplix."}
           </p>
 
           {/* Apple Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             {/* Primary Action: Solid White Pill */}
             <button
               onClick={handleWatchNow}
-              className="flex items-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-semibold px-7 py-3.5 rounded-full text-sm sm:text-base transition-all duration-200 shadow-apple-button hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-bold px-5 sm:px-7 py-3 sm:py-3.5 rounded-full text-xs sm:text-base transition-all duration-200 shadow-apple-button active:scale-95"
             >
-              <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black ml-0.5" />
+              <Play className="w-4 h-4 fill-black ml-0.5" />
               <span>Stream Now</span>
             </button>
 
             {/* Secondary Action: Apple Frosted Glass Pill */}
             <button
               onClick={handleDetails}
-              className="flex items-center gap-2 bg-white/[0.12] hover:bg-white/[0.22] text-white font-medium px-6 py-3.5 rounded-full text-sm sm:text-base border border-white/[0.18] backdrop-blur-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 bg-white/[0.12] hover:bg-white/[0.22] text-white font-medium px-4 sm:px-6 py-3 sm:py-3.5 rounded-full text-xs sm:text-base border border-white/[0.18] backdrop-blur-2xl transition-all duration-200 active:scale-95"
             >
-              <Info className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-300" />
+              <Info className="w-4 h-4 text-zinc-300" />
               <span>Details</span>
             </button>
 
             {/* Watchlist Quick Toggle: Circle Glass Pill */}
             <button
               onClick={handleWatchlist}
-              className={`w-12 h-12 rounded-full border backdrop-blur-2xl flex items-center justify-center transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] ${inWatchlist
+              className={`w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-full border backdrop-blur-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${inWatchlist
                 ? 'bg-white text-black border-white shadow-apple-button'
                 : 'bg-white/[0.12] text-white hover:bg-white/[0.22] border-white/[0.18]'
                 }`}
               title={inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
             >
-              {inWatchlist ? <Check className="w-5 h-5 stroke-[2.5]" /> : <Plus className="w-5 h-5" />}
+              {inWatchlist ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Plus className="w-4 h-4" />}
             </button>
+          </div>
+
+          {/* Mobile iOS Page Indicator Dots */}
+          <div className="flex lg:hidden items-center gap-1.5 mt-4">
+            {carouselItems.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`transition-all duration-300 rounded-full ${
+                  idx === currentIndex
+                    ? 'w-5 h-1.5 bg-white shadow-sm'
+                    : 'w-1.5 h-1.5 bg-white/35'
+                }`}
+                aria-label={`Slide ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
 
