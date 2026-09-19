@@ -71,24 +71,49 @@ export const ContinueWatchingCard: React.FC<ContinueWatchingCardProps> = ({ item
       onMouseLeave={() => setIsHovered(false)}
       className={`relative select-none group transition-all ${
         isHovered ? 'z-50' : 'z-10'
-      } ${className || 'w-72 sm:w-80 md:w-[340px] shrink-0'}`}
+      } ${className || 'w-[240px] sm:w-80 md:w-[340px] shrink-0'}`}
     >
       {/* Resting Card View */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         {/* 16:9 Backdrop Container */}
         <div
           onClick={() => navigate(watchLink)}
-          className="relative aspect-video w-full rounded-2xl overflow-hidden bg-[#161618] border border-white/[0.12] shadow-lg cursor-pointer"
+          className="relative aspect-video w-full rounded-2xl overflow-hidden bg-[#161618] border border-white/[0.12] shadow-lg cursor-pointer active:scale-[0.98] transition-transform group/card"
         >
           <img
             src={getImageUrl(item.backdrop_path || item.poster_path, 'w780')}
             alt={item.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
             loading="lazy"
           />
 
+          {/* Subtle dark vignette */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
+
+          {/* Centered Apple TV Play Pill */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 backdrop-blur-md border border-white/25 flex items-center justify-center text-white shadow-lg group-hover/card:scale-110 group-hover/card:bg-white group-hover/card:text-black transition-all duration-300">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
+            </div>
+          </div>
+
+          {/* Remove Button for Mobile Quick Access */}
+          {onRemove && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onRemove(item.id, item.mediaType);
+              }}
+              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-black/80 text-zinc-300 hover:text-white border border-white/15 backdrop-blur-md flex items-center justify-center transition-all z-20 active:scale-90"
+              title="Remove from history"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {/* Integrated Slim Progress Bar at Bottom of Image */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/25">
             <div
               className="h-full bg-white transition-all duration-300"
               style={{ width: `${percentage}%` }}
@@ -111,10 +136,10 @@ export const ContinueWatchingCard: React.FC<ContinueWatchingCardProps> = ({ item
         </div>
       </div>
 
-      {/* Apple TV Expanded Hover Focus Overlay Card */}
+      {/* Apple TV Expanded Hover Focus Overlay Card (Desktop Only) */}
       {isHovered && (
         <div
-          className="absolute -top-2.5 -left-3 -right-3 z-50 bg-[#161618] border border-white/30 rounded-2xl overflow-hidden shadow-2xl animate-scale-in"
+          className="hidden sm:block absolute -top-2.5 -left-3 -right-3 z-50 bg-[#161618] border border-white/30 rounded-2xl overflow-hidden shadow-2xl animate-scale-in"
           style={{
             boxShadow: '0 24px 48px -12px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.2)'
           }}

@@ -101,7 +101,6 @@ const SeriesPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl">🇮🇳</span>
               <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-display tracking-tight">
                 Indian & Global TV Series
               </h1>
@@ -165,11 +164,10 @@ const SeriesPage: React.FC = () => {
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                langParam === lang.code
+              className={`px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${langParam === lang.code
                   ? 'bg-white text-black shadow-apple-button scale-105'
                   : 'bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white border border-white/[0.08]'
-              }`}
+                }`}
             >
               {lang.name}
             </button>

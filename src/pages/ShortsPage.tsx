@@ -44,11 +44,44 @@ const ShortsPage: React.FC = () => {
   const [inWatchlistMap, setInWatchlistMap] = useState<Record<string, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showFullOverview, setShowFullOverview] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
 
+  const [dragY, setDragY] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number | null>(null);
+  const touchCurrentY = useRef<number | null>(null);
   const isScrolling = useRef(false);
   const navigate = useNavigate();
+
+  // Listen to YouTube player state changes via postMessage to detect when playback genuinely starts
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data && (data.event === 'onStateChange' || data.event === 'infoDelivery')) {
+          const state = data.info?.playerState ?? data.info;
+          // State 1 = PLAYING
+          if (state === 1) {
+            setIsVideoPlaying(true);
+          }
+        }
+      } catch {
+        // ignore non-JSON messages
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Reset video playing state on activeIndex change and provide graceful fallback timeout
+  useEffect(() => {
+    setIsVideoPlaying(false);
+    const timer = setTimeout(() => {
+      setIsVideoPlaying(true);
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [activeIndex]);
 
   // Load dynamic shorts from TMDB
   useEffect(() => {
@@ -158,22 +191,48 @@ const ShortsPage: React.FC = () => {
     }
   }, [handleNext, handlePrev]);
 
-  // Touch Swipe navigation
+  // Touch Swipe navigation with real-time rubber-band drag tracking
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
+    touchCurrentY.current = e.touches[0].clientY;
+    setIsSwiping(true);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null) return;
-    const touchEndY = e.changedTouches[0].clientY;
-    const diff = touchStartY.current - touchEndY;
+    const currentY = e.touches[0].clientY;
+    touchCurrentY.current = currentY;
+    const deltaY = currentY - touchStartY.current;
 
-    if (diff > 50) {
+    // Apply fluid iOS-style damping
+    let dampedDelta = deltaY * 0.45;
+    // Boundary resistance when dragging past first or last item
+    if ((activeIndex === 0 && deltaY > 0) || (activeIndex === shorts.length - 1 && deltaY < 0)) {
+      dampedDelta = deltaY * 0.15;
+    }
+
+    // Limit maximum travel for pleasant responsiveness
+    const clamped = Math.max(-110, Math.min(110, dampedDelta));
+    setDragY(clamped);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartY.current === null) return;
+    const diff = touchStartY.current - (touchCurrentY.current ?? touchStartY.current);
+
+    // Spring release back to center
+    setIsSwiping(false);
+    setDragY(0);
+
+    // Require an intentional swipe (> 80px), preventing accidental triggers on small gestures
+    const SWIPE_THRESHOLD = 80;
+    if (diff > SWIPE_THRESHOLD) {
       handleNext();
-    } else if (diff < -50) {
+    } else if (diff < -SWIPE_THRESHOLD) {
       handlePrev();
     }
     touchStartY.current = null;
+    touchCurrentY.current = null;
   };
 
   const handleToggleLike = (id: string) => {
@@ -278,8 +337,9 @@ const ShortsPage: React.FC = () => {
     <div
       ref={containerRef}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="min-h-screen bg-black pt-20 pb-10 flex items-center justify-center relative overflow-hidden text-[#f5f5f7] select-none"
+      className="min-h-[calc(100dvh-5rem)] sm:min-h-screen bg-black pt-2 sm:pt-20 pb-2 sm:pb-10 flex items-center justify-center relative overflow-hidden text-[#f5f5f7] select-none touch-pan-x"
     >
       {/* Dynamic Ambient Background Blur based on current backdrop */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -292,37 +352,85 @@ const ShortsPage: React.FC = () => {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c1e]/90 text-white border border-white/20 backdrop-blur-2xl px-5 py-2.5 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-50 bg-[#1c1c1e]/90 text-white border border-white/20 backdrop-blur-2xl px-5 py-2.5 rounded-full text-xs font-semibold shadow-2xl flex items-center gap-2 animate-fade-in">
           <Sparkles className="w-3.5 h-3.5 text-[#2997ff]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <div className="relative z-10 flex items-center justify-center gap-6 max-w-xl w-full px-3 sm:px-4">
+      <div className="relative z-10 flex items-center justify-center gap-6 max-w-xl w-full px-2 sm:px-4">
         {/* Main Vertical Video Container */}
-        <div className="relative w-full max-w-[420px] aspect-[9/16] max-h-[82vh] bg-black rounded-3xl overflow-hidden border border-white/[0.16] shadow-apple-card flex flex-col justify-between">
-          {/* YouTube Video Player Embed */}
+        <div
+          className="relative w-full max-w-[420px] aspect-[9/16] max-h-[calc(100dvh-5.5rem)] sm:max-h-[82vh] bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.16] shadow-apple-card flex flex-col justify-between"
+          style={{
+            transform: `translateY(${dragY}px) scale(${1 - Math.abs(dragY) * 0.0006})`,
+            transition: isSwiping ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
+            touchAction: 'pan-x'
+          }}
+        >
+          {/* Subtle Dynamic Drag Indicator Badge */}
+          {Math.abs(dragY) > 20 && (
+            <div className={`absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-opacity duration-200 ${
+              dragY < 0 ? 'bottom-6' : 'top-16'
+            }`}>
+              <div className="bg-black/80 backdrop-blur-xl border border-white/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-semibold text-white/90 shadow-xl animate-fade-in">
+                {dragY < 0 ? (
+                  <>
+                    <span>Next Video</span>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#2997ff]" />
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp className="w-3.5 h-3.5 text-[#2997ff]" />
+                    <span>Previous Video</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* YouTube Video Player Embed Container */}
           <div className="absolute inset-0 w-full h-full bg-black overflow-hidden">
             <iframe
               key={currentShort.videoKey}
               src={`https://www.youtube-nocookie.com/embed/${currentShort.videoKey}?autoplay=1&mute=${isMuted ? 1 : 0
-                }&enablejsapi=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${currentShort.videoKey
-                }&playsinline=1&iv_load_policy=3&showinfo=0`}
+                }&enablejsapi=1&controls=0&modestbranding=1&rel=0&playsinline=1&iv_load_policy=3&showinfo=0&origin=${
+                  typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''
+                }`}
               title={currentShort.title}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              className="w-full h-full object-cover scale-[1.35] pointer-events-auto border-0"
+              className="w-full h-full object-cover scale-[1.35] pointer-events-none border-0"
             />
+
+            {/* Cover Poster Overlay: Completely hides YouTube's initial pause icon / loading bar until genuine playback begins */}
+            <div
+              className={`absolute inset-0 z-10 bg-black transition-opacity duration-500 pointer-events-none ${
+                isVideoPlaying ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <img
+                src={currentShort.backdrop || currentShort.poster}
+                alt={currentShort.title}
+                className="w-full h-full object-cover filter brightness-90 scale-105"
+              />
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-xl flex items-center justify-center border border-white/20 shadow-2xl">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#2997ff]" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Top Bar Header */}
-          <div className="relative z-20 p-4 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/40 to-transparent">
+          <div className="relative z-20 p-3 sm:p-4 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/40 to-transparent">
             <div className="flex items-center gap-2">
-              <span className="apple-badge flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full font-semibold tracking-wider text-white">
+              <span className="apple-badge flex items-center gap-1 text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full font-semibold tracking-wider text-white">
                 <Sparkles className="w-3 h-3 text-[#2997ff]" />
                 Netplix Shorts
               </span>
-              <span className="text-[10px] font-medium text-white/70 bg-white/10 px-2 py-0.5 rounded-md backdrop-blur-md">
+              <span className="text-[10px] sm:text-xs font-medium text-white/70 bg-white/10 px-2 py-0.5 rounded-md backdrop-blur-md">
                 {activeIndex + 1} / {shorts.length}
               </span>
             </div>
@@ -330,7 +438,7 @@ const ShortsPage: React.FC = () => {
             {/* Audio Mute/Unmute Toggle */}
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className="p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-xl transition-all border border-white/15 active:scale-95 shadow-md"
+              className="p-2 sm:p-2.5 rounded-full bg-black/60 hover:bg-black/90 text-white backdrop-blur-xl transition-all border border-white/15 active:scale-95 shadow-md"
               title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
             >
               {isMuted ? (
@@ -342,7 +450,7 @@ const ShortsPage: React.FC = () => {
           </div>
 
           {/* Right Floating Actions (Likes, Watchlist, Share, Details) */}
-          <div className="absolute right-3 bottom-28 z-30 flex flex-col items-center gap-4">
+          <div className="absolute right-2.5 sm:right-3 bottom-24 sm:bottom-28 z-30 flex flex-col items-center gap-3 sm:gap-4">
             {/* Like */}
             <button
               onClick={() => handleToggleLike(currentShort.id)}
@@ -350,14 +458,14 @@ const ShortsPage: React.FC = () => {
               title="Like this trailer"
             >
               <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all duration-200 active:scale-90 shadow-lg ${isCurrentLiked
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all duration-200 active:scale-90 shadow-lg ${isCurrentLiked
                     ? 'bg-red-500 text-white scale-105'
                     : 'bg-black/60 text-white hover:bg-white/20'
                   }`}
               >
-                <Heart className={`w-5 h-5 ${isCurrentLiked ? 'fill-white' : ''}`} />
+                <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${isCurrentLiked ? 'fill-white' : ''}`} />
               </div>
-              <span className="text-[10px] font-semibold text-white/90 drop-shadow-md">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-white/90 drop-shadow-md">
                 {isCurrentLiked ? 'Liked' : currentShort.likes}
               </span>
             </button>
@@ -369,18 +477,18 @@ const ShortsPage: React.FC = () => {
               title="Save to Watchlist"
             >
               <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all duration-200 active:scale-90 shadow-lg ${isCurrentInWatchlist
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all duration-200 active:scale-90 shadow-lg ${isCurrentInWatchlist
                     ? 'bg-[#2997ff] text-white scale-105'
                     : 'bg-black/60 text-white hover:bg-white/20'
                   }`}
               >
                 {isCurrentInWatchlist ? (
-                  <Check className="w-5 h-5" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <Bookmark className="w-5 h-5" />
+                  <Bookmark className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </div>
-              <span className="text-[10px] font-semibold text-white/90 drop-shadow-md">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-white/90 drop-shadow-md">
                 {isCurrentInWatchlist ? 'Saved' : 'Watchlist'}
               </span>
             </button>
@@ -391,10 +499,10 @@ const ShortsPage: React.FC = () => {
               className="flex flex-col items-center gap-1 group"
               title="Share trailer"
             >
-              <div className="w-11 h-11 rounded-full bg-black/60 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all active:scale-90 shadow-lg">
-                <Share2 className="w-5 h-5" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all active:scale-90 shadow-lg">
+                <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-[10px] font-semibold text-white/90 drop-shadow-md">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-white/90 drop-shadow-md">
                 Share
               </span>
             </button>
@@ -405,31 +513,31 @@ const ShortsPage: React.FC = () => {
               className="flex flex-col items-center gap-1 group"
               title="View full film info"
             >
-              <div className="w-11 h-11 rounded-full bg-black/60 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all active:scale-90 shadow-lg">
-                <Info className="w-5 h-5" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/60 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-2xl border border-white/20 transition-all active:scale-90 shadow-lg">
+                <Info className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-[10px] font-semibold text-white/90 drop-shadow-md">
+              <span className="text-[9px] sm:text-[10px] font-semibold text-white/90 drop-shadow-md">
                 Info
               </span>
             </button>
           </div>
 
           {/* Bottom Info & Watch CTA */}
-          <div className="relative z-20 p-4 bg-gradient-to-t from-black via-black/90 to-transparent pt-8">
+          <div className="relative z-20 p-3 sm:p-4 bg-gradient-to-t from-black via-black/90 to-transparent pt-6 sm:pt-8">
             {/* Meta Tags & Ratings */}
-            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="flex items-center gap-1 text-[11px] font-bold text-[#f5c518] bg-black/60 px-2 py-0.5 rounded-md border border-white/10">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 flex-wrap">
+              <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#f5c518] bg-black/60 px-2 py-0.5 rounded-md border border-white/10">
                 <Star className="w-3 h-3 fill-[#f5c518]" />
                 {currentShort.voteAverage}
               </span>
 
               {currentShort.releaseDate && (
-                <span className="text-[11px] font-medium text-white/70 bg-black/60 px-2 py-0.5 rounded-md border border-white/10">
+                <span className="text-[10px] sm:text-[11px] font-medium text-white/70 bg-black/60 px-2 py-0.5 rounded-md border border-white/10">
                   {currentShort.releaseDate.substring(0, 4)}
                 </span>
               )}
 
-              <span className="text-[11px] font-medium text-white/70 bg-black/60 px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1">
+              <span className="text-[10px] sm:text-[11px] font-medium text-white/70 bg-black/60 px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1">
                 {currentShort.mediaType === 'tv' ? (
                   <>
                     <Tv className="w-3 h-3 text-[#2997ff]" /> Series
@@ -443,16 +551,16 @@ const ShortsPage: React.FC = () => {
             </div>
 
             {/* Title */}
-            <h3 className="text-base font-bold text-white mb-1 line-clamp-1 drop-shadow-md font-display">
+            <h3 className="text-sm sm:text-base font-bold text-white mb-1 line-clamp-1 drop-shadow-md font-display">
               {currentShort.title}
             </h3>
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div className="flex flex-wrap gap-1.5 mb-1.5 sm:mb-2">
               {currentShort.tags.slice(0, 3).map(tag => (
                 <span
                   key={tag}
-                  className="text-[11px] text-[#2997ff] font-medium bg-[#2997ff]/10 px-2 py-0.5 rounded-full"
+                  className="text-[10px] sm:text-[11px] text-[#2997ff] font-medium bg-[#2997ff]/10 px-2 py-0.5 rounded-full"
                 >
                   {tag}
                 </span>
@@ -462,7 +570,7 @@ const ShortsPage: React.FC = () => {
             {/* Overview / Synopsis Snippet */}
             <p
               onClick={() => setShowFullOverview(!showFullOverview)}
-              className={`text-xs text-white/80 mb-3 cursor-pointer leading-relaxed ${showFullOverview ? '' : 'line-clamp-2'
+              className={`text-[11px] sm:text-xs text-white/80 mb-2.5 sm:mb-3 cursor-pointer leading-relaxed ${showFullOverview ? '' : 'line-clamp-2'
                 }`}
             >
               {currentShort.overview}
@@ -475,9 +583,9 @@ const ShortsPage: React.FC = () => {
             <div className="flex gap-2">
               <button
                 onClick={handleWatchFull}
-                className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-bold py-3 rounded-2xl text-sm transition-all shadow-apple-button hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-bold py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm transition-all shadow-apple-button hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Play className="w-4 h-4 fill-black" />
+                <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-black" />
                 <span>
                   Watch {currentShort.mediaType === 'tv' ? 'Series' : 'Full Movie'}
                 </span>

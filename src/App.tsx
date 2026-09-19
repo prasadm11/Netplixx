@@ -37,7 +37,7 @@ const App: React.FC = () => {
   const isWatchPage = location.pathname.startsWith('/watch/');
   const isShorts = location.pathname.startsWith('/shorts');
   const hideNavbar = isDetailPage || isWatchPage || isShorts;
-  const hideTabBar = isWatchPage || isShorts;
+  const hideTabBar = isWatchPage;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white selection:bg-[#95FF50] selection:text-black">

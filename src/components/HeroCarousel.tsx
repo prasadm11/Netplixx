@@ -12,8 +12,34 @@ interface HeroCarouselProps {
 const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const navigate = useNavigate();
   const carouselItems = items.slice(0, 6);
+
+  const minSwipeDistance = 45;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      setCurrentIndex(prev => (prev + 1) % carouselItems.length);
+    }
+    if (isRightSwipe) {
+      setCurrentIndex(prev => (prev - 1 + carouselItems.length) % carouselItems.length);
+    }
+  };
 
   useEffect(() => {
     if (carouselItems.length <= 1 || isPaused) return;
@@ -69,37 +95,116 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
 
   return (
     <div
-      className="relative w-full h-[72vh] sm:h-[82vh] lg:h-[88vh] overflow-hidden bg-black select-none"
+      className="relative w-full h-[75vh] min-h-[520px] max-h-[660px] sm:h-[82vh] lg:h-[88vh] overflow-hidden bg-black select-none touch-pan-y"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       {/* Cinematic Backdrops with Apple TV Crossfade */}
       {carouselItems.map((item, idx) => (
         <div
           key={item.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-out ${idx === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+          className={`absolute inset-0 transition-opacity duration-700 ease-out ${idx === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
             }`}
         >
+          {/* Desktop/Tablet: Crisp Landscape Backdrop */}
           <img
             src={getBackdropUrl(item.backdrop_path, 'original')}
             alt={item.title || item.name}
-            className="w-full h-full object-cover object-[center_20%] scale-100 transform transition-transform duration-10000 ease-out"
+            className="hidden sm:block w-full h-full object-cover object-[center_20%] scale-100 transform transition-transform duration-10000 ease-out"
+            loading={idx === 0 ? 'eager' : 'lazy'}
+          />
+
+          {/* Mobile: Full-Bleed Fully Occupied Vertical Poster */}
+          <img
+            src={getImageUrl(item.poster_path, 'original') || getBackdropUrl(item.backdrop_path, 'original')}
+            alt={item.title || item.name}
+            className="sm:hidden w-full h-full object-cover object-top"
             loading={idx === 0 ? 'eager' : 'lazy'}
           />
 
           {/* Apple TV Vignette & Bottom Mask Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent w-full lg:w-3/5" />
-          <div className="absolute inset-0 bg-radial-vignette opacity-70 pointer-events-none" />
-          <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-black/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 via-45% to-transparent" />
+          <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent w-full lg:w-3/5" />
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 via-black/25 to-transparent" />
         </div>
       ))}
 
       {/* Hero Content Overlay */}
-      <div className="relative z-20 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-12 sm:pb-16 lg:pb-20">
-        <div className="max-w-2xl animate-fade-in">
+      <div className="relative z-20 max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex flex-col justify-end pb-3 sm:pb-12 lg:pb-16">
+        
+        {/* Mobile Full-Bleed Overlay Content (sm:hidden) */}
+        <div className="sm:hidden w-full flex flex-col items-center text-center pb-2 px-2 animate-fade-in">
           {/* Apple Original Badge */}
+          <div className="flex items-center justify-center gap-2 mb-1.5">
+            <span className="apple-badge text-[9px] px-2 py-0.5 rounded font-bold tracking-wider text-white/90">
+              {isTv ? 'SERIES' : 'FEATURE FILM'} • 4K HDR
+            </span>
+            {rating && (
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-300 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                <Star className="w-3 h-3 fill-amber-300" />
+                {rating}
+              </span>
+            )}
+          </div>
 
+          {/* Cinematic Large Title */}
+          <h1 className="text-2xl font-black text-white tracking-tight leading-tight mb-1 font-display drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] line-clamp-1">
+            {title}
+          </h1>
+
+          {/* Tagline / Overview */}
+          <p className="text-zinc-200 text-xs line-clamp-2 mb-3.5 leading-relaxed max-w-sm font-normal drop-shadow-[0_1px_8px_rgba(0,0,0,0.9)]">
+            {current.overview || "Experience this critically acclaimed title in ultra-high definition with immersive spatial audio on Netplix."}
+          </p>
+
+          {/* Apple Action Buttons */}
+          <div className="flex items-center justify-center gap-2 w-full max-w-xs mb-1">
+            <button
+              onClick={handleWatchNow}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-white hover:bg-[#e5e5ea] text-black font-bold px-4 py-2.5 rounded-full text-xs transition-all shadow-apple-button active:scale-95"
+            >
+              <Play className="w-3.5 h-3.5 fill-black ml-0.5" />
+              <span>Stream Now</span>
+            </button>
+
+            <button
+              onClick={handleDetails}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-white/[0.16] hover:bg-white/[0.24] text-white font-medium px-4 py-2.5 rounded-full text-xs border border-white/[0.2] backdrop-blur-2xl transition-all active:scale-95"
+            >
+              <Info className="w-3.5 h-3.5 text-zinc-300" />
+              <span>Details</span>
+            </button>
+
+            <button
+              onClick={handleWatchlist}
+              className={`w-9 h-9 shrink-0 rounded-full border backdrop-blur-2xl flex items-center justify-center transition-all active:scale-90 ${inWatchlist
+                ? 'bg-white text-black border-white shadow-apple-button'
+                : 'bg-white/[0.16] text-white hover:bg-white/[0.24] border-white/[0.2]'
+                }`}
+              title={inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+            >
+              {inWatchlist ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <Plus className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Layout (hidden sm:block) */}
+        <div className="hidden sm:block max-w-2xl animate-fade-in">
+          {/* Apple Original Badge */}
+          <div className="flex items-center gap-2 mb-2 sm:mb-2.5">
+            <span className="apple-badge text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold tracking-wider text-white/90">
+              {isTv ? 'SERIES' : 'FEATURE FILM'} • 4K HDR
+            </span>
+            {rating && (
+              <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-amber-300 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                <Star className="w-3 h-3 fill-amber-300" />
+                {rating}
+              </span>
+            )}
+          </div>
 
           {/* Cinematic Large Title */}
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display drop-shadow-lg">
@@ -107,7 +212,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
           </h1>
 
           {/* Tagline / Overview */}
-          <p className="text-zinc-300 text-xs sm:text-base line-clamp-2 sm:line-clamp-3 mb-4 sm:mb-6 leading-relaxed max-w-xl font-normal drop-shadow">
+          <p className="text-zinc-300 text-xs sm:text-base line-clamp-2 sm:line-clamp-3 mb-3.5 sm:mb-6 leading-relaxed max-w-xl font-normal drop-shadow">
             {current.overview || "Experience this critically acclaimed title in ultra-high definition with immersive spatial audio on Netplix."}
           </p>
 
@@ -116,7 +221,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
             {/* Primary Action: Solid White Pill */}
             <button
               onClick={handleWatchNow}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-bold px-5 sm:px-7 py-3 sm:py-3.5 rounded-full text-xs sm:text-base transition-all duration-200 shadow-apple-button active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-white hover:bg-[#e5e5ea] text-black font-bold px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-base transition-all duration-200 shadow-apple-button active:scale-95"
             >
               <Play className="w-4 h-4 fill-black ml-0.5" />
               <span>Stream Now</span>
@@ -125,7 +230,7 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
             {/* Secondary Action: Apple Frosted Glass Pill */}
             <button
               onClick={handleDetails}
-              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 bg-white/[0.12] hover:bg-white/[0.22] text-white font-medium px-4 sm:px-6 py-3 sm:py-3.5 rounded-full text-xs sm:text-base border border-white/[0.18] backdrop-blur-2xl transition-all duration-200 active:scale-95"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 sm:gap-2 bg-white/[0.14] hover:bg-white/[0.22] text-white font-medium px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-full text-xs sm:text-base border border-white/[0.18] backdrop-blur-2xl transition-all duration-200 active:scale-95"
             >
               <Info className="w-4 h-4 text-zinc-300" />
               <span>Details</span>
@@ -134,34 +239,18 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
             {/* Watchlist Quick Toggle: Circle Glass Pill */}
             <button
               onClick={handleWatchlist}
-              className={`w-11 h-11 sm:w-12 sm:h-12 shrink-0 rounded-full border backdrop-blur-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${inWatchlist
+              className={`w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-full border backdrop-blur-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${inWatchlist
                 ? 'bg-white text-black border-white shadow-apple-button'
-                : 'bg-white/[0.12] text-white hover:bg-white/[0.22] border-white/[0.18]'
+                : 'bg-white/[0.14] text-white hover:bg-white/[0.22] border-white/[0.18]'
                 }`}
               title={inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
             >
               {inWatchlist ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Plus className="w-4 h-4" />}
             </button>
           </div>
-
-          {/* Mobile iOS Page Indicator Dots */}
-          <div className="flex lg:hidden items-center gap-1.5 mt-4">
-            {carouselItems.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`transition-all duration-300 rounded-full ${
-                  idx === currentIndex
-                    ? 'w-5 h-1.5 bg-white shadow-sm'
-                    : 'w-1.5 h-1.5 bg-white/35'
-                }`}
-                aria-label={`Slide ${idx + 1}`}
-              />
-            ))}
-          </div>
         </div>
 
-        {/* Apple TV Thumbnail Preview Dock (Bottom Right) */}
+        {/* Apple TV Thumbnail Preview Dock (Bottom Right on Desktop) */}
         <div className="hidden lg:flex items-center gap-2.5 absolute bottom-12 right-8 z-30 bg-black/40 backdrop-blur-2xl p-2 rounded-2xl border border-white/10 shadow-apple-glass">
           <button
             onClick={() => setCurrentIndex(prev => (prev - 1 + carouselItems.length) % carouselItems.length)}
@@ -205,15 +294,15 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
           </button>
         </div>
 
-        {/* Mobile / Tablet Minimal Progress Dots */}
-        <div className="lg:hidden flex items-center justify-center gap-1.5 mt-6 z-30">
+        {/* Mobile / Tablet Minimal Single Progress Dots (Clean Centered iOS Dock) */}
+        <div className="lg:hidden flex items-center justify-center gap-1.5 pt-4 pb-1 z-30">
           {carouselItems.map((_, idx) => (
             <button
               key={idx}
               onClick={() => setCurrentIndex(idx)}
-              className={`h-1 rounded-full transition-all duration-300 ${idx === currentIndex
+              className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex
                 ? 'w-6 bg-white shadow-sm'
-                : 'w-2 bg-white/30 hover:bg-white/60'
+                : 'w-1.5 bg-white/35 hover:bg-white/60'
                 }`}
               aria-label={`Slide ${idx + 1}`}
             />

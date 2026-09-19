@@ -91,8 +91,8 @@ const HomePage: React.FC = () => {
 
       {/* "Up Next" / Continue Watching (Apple TV Style Landscape Shelf matching reference image) */}
       {continueWatching.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-2 relative z-30">
-          <div className="flex items-center justify-between mb-2">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 pb-3 relative z-30">
+          <div className="flex items-center justify-between mb-3 px-0.5">
             <Link
               to="/continue-watching"
               className="group/title inline-flex items-center gap-1.5 hover:opacity-80 transition-opacity"
@@ -100,11 +100,11 @@ const HomePage: React.FC = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-display">
                 Continue Watching
               </h2>
-              <ChevronRight className="w-5 h-5 text-zinc-400 group-hover/title:translate-x-0.5 group-hover/title:text-white transition-all" />
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-zinc-400 group-hover/title:translate-x-0.5 group-hover/title:text-white transition-all" />
             </Link>
           </div>
 
-          <div className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth pt-8 pb-24 px-4 -mt-4 -mb-16">
+          <div className="flex items-stretch gap-3.5 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth py-2 px-0.5 ios-scroll">
             {continueWatching.map(item => (
               <ContinueWatchingCard
                 key={`${item.mediaType}-${item.id}`}

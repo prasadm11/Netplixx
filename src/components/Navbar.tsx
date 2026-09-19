@@ -51,19 +51,19 @@ const Navbar: React.FC = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${isScrolled
-          ? 'apple-glass-nav py-3 sm:py-3.5 shadow-2xl'
-          : 'bg-gradient-to-b from-black/90 via-black/40 to-transparent py-4 sm:py-5'
-          } pt-[max(env(safe-area-inset-top),0.75rem)]`}
+          ? 'apple-glass-nav py-2.5 sm:py-3.5 shadow-2xl'
+          : 'bg-gradient-to-b from-black/90 via-black/40 to-transparent py-3 sm:py-5'
+          } pt-[max(env(safe-area-inset-top),12px)]`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Apple TV-style Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-white text-black flex items-center justify-center font-black tracking-tighter text-sm shadow-apple-button group-hover:scale-105 transition-transform duration-300">
-              <span className="font-display font-extrabold text-[15px] leading-none">tv</span>
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group active:scale-95 transition-transform">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white text-black flex items-center justify-center font-black tracking-tighter text-sm shadow-apple-button group-hover:scale-105 transition-transform duration-300">
+              <span className="font-display font-extrabold text-[13px] sm:text-[15px] leading-none">tv</span>
             </div>
-            <div className="flex items-baseline gap-1.5 leading-none">
-              <span className="text-lg font-bold tracking-tight text-white font-display">
-                Netplix<span className="text-[#2997ff] font-light text-base">+</span>
+            <div className="flex items-baseline gap-1 leading-none">
+              <span className="text-base sm:text-lg font-bold tracking-tight text-white font-display">
+                Netplix<span className="text-[#2997ff] font-light text-sm sm:text-base">+</span>
               </span>
             </div>
           </Link>
@@ -98,11 +98,11 @@ const Navbar: React.FC = () => {
             {/* Apple Spotlight Search Trigger */}
             <button
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] hover:border-white/25 px-3 sm:px-3.5 py-1.5 rounded-full text-zinc-300 hover:text-white transition-all text-xs font-medium backdrop-blur-xl group"
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:h-auto sm:gap-2 bg-white/[0.12] hover:bg-white/[0.18] active:scale-90 border border-white/[0.14] hover:border-white/25 sm:px-3.5 sm:py-1.5 rounded-full text-zinc-300 hover:text-white transition-all text-xs font-medium backdrop-blur-xl group"
               title="Search Apple Originals, Movies & Series (⌘K)"
               aria-label="Search"
             >
-              <Search className="w-3.5 h-3.5 text-zinc-400 group-hover:text-white transition-colors" />
+              <Search className="w-3.5 h-3.5 text-zinc-300 group-hover:text-white transition-colors" />
               <span className="hidden sm:inline text-zinc-300">Search</span>
               <kbd className="hidden lg:inline-flex items-center gap-0.5 bg-white/10 text-zinc-400 px-1.5 py-0.5 rounded text-[10px] font-mono border border-white/10">
                 ⌘K
@@ -112,11 +112,11 @@ const Navbar: React.FC = () => {
             {/* Settings / Preferences */}
             <Link
               to="/settings"
-              className="p-2 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 text-zinc-300 hover:text-white transition-all border border-white/[0.1] backdrop-blur-xl"
+              className="w-8 h-8 sm:w-auto sm:h-auto p-2 rounded-full bg-white/[0.12] hover:bg-white/[0.18] active:scale-90 text-zinc-300 hover:text-white transition-all border border-white/[0.14] backdrop-blur-xl flex items-center justify-center"
               title="Player Settings & Preferences"
               aria-label="Settings"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Link>
           </div>
         </div>

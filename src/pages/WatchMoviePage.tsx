@@ -125,21 +125,38 @@ const WatchMoviePage: React.FC = () => {
   const writers = movie.credits?.crew?.filter((c: any) => ['Screenplay', 'Writer'].includes(c.job)) || [];
 
   return (
-    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-20 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-2 sm:pt-20 pb-16 sm:pb-24">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
 
         {/* Apple TV Minimalist Breadcrumb Navigation */}
-        <nav className="flex items-center gap-2 text-[11px] sm:text-xs text-zinc-400 mb-5 font-medium tracking-wide">
-          <Link to="/" className="hover:text-white transition-colors">Discover</Link>
-          <span className="text-zinc-600">›</span>
-          <Link to="/movies" className="hover:text-white transition-colors">Movies</Link>
-          <span className="text-zinc-600">›</span>
-          <span className="text-zinc-300 truncate max-w-[180px] sm:max-w-[260px]">{movie.title}</span>
-          <span className="text-zinc-600">›</span>
-          <span className="text-[#2997ff] font-semibold">Now Playing</span>
+        <nav className="flex items-center justify-between gap-3 mb-2 sm:mb-5 px-3.5 sm:px-0">
+          {/* Mobile: Native Apple Pill Back & Playing Badge */}
+          <div className="flex sm:hidden items-center justify-between w-full h-8">
+            <Link
+              to={`/movie/${movie.id}`}
+              className="h-7 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] backdrop-blur-xl text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm truncate max-w-[210px] transition-all"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 -ml-1 text-zinc-400 shrink-0" />
+              <span className="truncate">{movie.title}</span>
+            </Link>
+            <span className="px-2 py-0.5 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/35 text-[#2997ff] text-[10px] font-bold tracking-wide shrink-0">
+              Now Playing
+            </span>
+          </div>
+
+          {/* Desktop: Full path breadcrumbs */}
+          <div className="hidden sm:flex items-center gap-2 truncate text-xs text-zinc-400 font-medium">
+            <Link to="/" className="hover:text-white transition-colors">Discover</Link>
+            <span className="text-zinc-600">›</span>
+            <Link to="/movies" className="hover:text-white transition-colors">Movies</Link>
+            <span className="text-zinc-600">›</span>
+            <span className="text-zinc-300 truncate max-w-[260px]">{movie.title}</span>
+            <span className="text-zinc-600">›</span>
+            <span className="text-[#2997ff] font-semibold">Now Playing</span>
+          </div>
         </nav>
 
-        {/* Apple Cinema Video Player */}
+        {/* Apple Cinema Video Player (Full-bleed Edge-to-Edge on Mobile) */}
         <VideoPlayer
           tmdbId={movie.id}
           mediaType="movie"
@@ -149,8 +166,11 @@ const WatchMoviePage: React.FC = () => {
           relatedItems={movie.similar?.results || movie.recommendations?.results || []}
         />
 
+        {/* Content chassis container with comfortable mobile padding */}
+        <div className="px-3.5 sm:px-0">
+
         {/* Apple TV+ Movie Hero Presentation Chassis */}
-        <div className="mt-8 rounded-3xl bg-[#101014]/80 backdrop-blur-3xl border border-white/[0.08] shadow-[0_25px_60px_rgba(0,0,0,0.85)] p-6 sm:p-10 relative z-10 overflow-hidden">
+        <div className="mt-2.5 sm:mt-8 rounded-2xl sm:rounded-3xl bg-[#121215]/75 sm:bg-[#121215]/85 backdrop-blur-3xl border border-white/[0.08] shadow-[0_15px_40px_rgba(0,0,0,0.85)] p-3.5 sm:p-10 relative z-10 overflow-hidden">
 
           {/* Subtle Ambient Background Hue */}
           {movie.backdrop_path && (
@@ -165,31 +185,31 @@ const WatchMoviePage: React.FC = () => {
 
           <div className="relative z-10">
             {/* Spec Bar Badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+              <span className="px-2 sm:px-2.5 py-0.5 rounded-full bg-white/10 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
                 Full HD
               </span>
               {movie.certification && (
-                <span className="px-2 py-0.5 rounded-md bg-white/[0.08] border border-white/[0.12] text-[10px] font-bold text-white uppercase">
+                <span className="px-1.5 sm:px-2 py-0.5 rounded-md bg-white/[0.08] border border-white/[0.12] text-[9px] sm:text-[10px] font-bold text-white uppercase">
                   {movie.certification}
                 </span>
               )}
             </div>
 
             {/* Title, Year, Duration, Score */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-white/[0.08]">
-              <div className="space-y-2 max-w-3xl">
-                <h1 className="text-3xl sm:text-5xl font-black text-white font-display tracking-tight leading-tight">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 sm:gap-6 pb-4 sm:pb-6 border-b border-white/[0.08]">
+              <div className="space-y-1 sm:space-y-2 max-w-3xl">
+                <h1 className="text-lg sm:text-4xl lg:text-5xl font-bold sm:font-black text-white font-display tracking-tight leading-snug">
                   {movie.title}
                 </h1>
 
                 {movie.tagline && (
-                  <p className="text-sm sm:text-base text-zinc-400 italic font-medium">
+                  <p className="text-xs sm:text-base text-zinc-400 italic font-medium">
                     "{movie.tagline}"
                   </p>
                 )}
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400 font-medium pt-1">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs text-zinc-400 font-medium pt-0.5 sm:pt-1">
                   {movie.release_date && (
                     <span>{movie.release_date.slice(0, 4)}</span>
                   )}
@@ -202,9 +222,9 @@ const WatchMoviePage: React.FC = () => {
                   {movie.vote_average > 0 && (
                     <>
                       <span>•</span>
-                      <span className="flex items-center gap-1 text-amber-300 font-bold bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/20">
-                        <Star className="w-3 h-3 fill-amber-300" />
-                        <span>{movie.vote_average.toFixed(1)} / 10 Rating</span>
+                      <span className="flex items-center gap-1 text-amber-300 font-bold bg-amber-400/10 px-1.5 sm:px-2 py-0.5 rounded-full border border-amber-400/20">
+                        <Star className="w-2.5 sm:w-3 h-2.5 sm:h-3 fill-amber-300" />
+                        <span>{movie.vote_average.toFixed(1)} / 10</span>
                       </span>
                     </>
                   )}
@@ -212,55 +232,55 @@ const WatchMoviePage: React.FC = () => {
               </div>
 
               {/* Apple TV Action Capsule Row */}
-              <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start lg:self-end">
+              <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
                 <button
                   onClick={handleToggleWatchlist}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-full text-xs font-bold transition-all ${inWatchlist
+                  className={`flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-3 rounded-full text-xs font-semibold sm:font-bold active:scale-95 transition-all ${inWatchlist
                       ? 'bg-white text-black shadow-apple-button hover:bg-zinc-200'
                       : 'bg-white text-black hover:bg-zinc-200 shadow-apple-button'
                     }`}
                 >
-                  {inWatchlist ? <Check className="w-4 h-4 stroke-[3]" /> : <Plus className="w-4 h-4 stroke-[3]" />}
+                  {inWatchlist ? <Check className="w-3.5 sm:w-4 h-3.5 sm:h-4 stroke-[3]" /> : <Plus className="w-3.5 sm:w-4 h-3.5 sm:h-4 stroke-[3]" />}
                   <span>{inWatchlist ? 'In Up Next' : 'Add to Up Next'}</span>
                 </button>
 
                 {primaryTrailer && (
                   <button
                     onClick={() => setTrailerKey(primaryTrailer.key)}
-                    className="flex items-center gap-2 px-5 py-3 rounded-full text-xs font-semibold bg-white/[0.08] hover:bg-white/[0.16] text-white border border-white/[0.14] transition-all backdrop-blur-xl"
+                    className="flex items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-3 rounded-full text-xs font-medium sm:font-semibold bg-white/[0.08] hover:bg-white/[0.16] active:scale-95 text-white border border-white/[0.14] transition-all backdrop-blur-xl"
                   >
-                    <Play className="w-3.5 h-3.5 fill-white" />
+                    <Play className="w-3 sm:w-3.5 h-3 sm:h-3.5 fill-white" />
                     <span>Trailer</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleToggleFavorites}
-                  className={`p-3 rounded-full border transition-all text-xs ${inFavorites
+                  className={`p-2 sm:p-3 rounded-full border active:scale-95 transition-all text-xs ${inFavorites
                       ? 'bg-red-500/20 text-red-400 border-red-500/40 shadow-sm'
                       : 'bg-white/[0.08] hover:bg-white/[0.16] text-white border-white/[0.14]'
                     }`}
                   title="Favorite"
                 >
-                  <Heart className={`w-4 h-4 ${inFavorites ? 'fill-red-400' : ''}`} />
+                  <Heart className={`w-3.5 sm:w-4 h-3.5 sm:h-4 ${inFavorites ? 'fill-red-400' : ''}`} />
                 </button>
 
                 <button
                   onClick={handleShare}
-                  className="p-3 bg-white/[0.08] hover:bg-white/[0.16] text-white rounded-full border border-white/[0.14] transition-all"
+                  className="p-2 sm:p-3 bg-white/[0.08] hover:bg-white/[0.16] active:scale-95 text-white rounded-full border border-white/[0.14] transition-all"
                   title="Share link"
                 >
-                  <Share2 className="w-4 h-4" />
+                  <Share2 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 </button>
               </div>
             </div>
 
             {/* Storyline & Overview */}
-            <div className="pt-6 max-w-4xl space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            <div className="pt-3 sm:pt-6 max-w-4xl space-y-2 sm:space-y-4">
+              <h3 className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-zinc-500">
                 Storyline
               </h3>
-              <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
+              <p className="text-xs sm:text-base text-zinc-300 leading-relaxed font-normal">
                 {movie.overview || 'Experience this feature presentation in cinema quality 4K resolution on Netplix+.'}
               </p>
 
@@ -426,6 +446,8 @@ const WatchMoviePage: React.FC = () => {
             />
           </div>
         )}
+
+        </div>
       </div>
 
       {trailerKey && (

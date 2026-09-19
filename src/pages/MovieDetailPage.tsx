@@ -96,6 +96,7 @@ const MovieDetailPage: React.FC = () => {
         onPlay={handlePlay}
         playButtonText={playButtonText}
         onOpenTrailerModal={() => setIsTrailerOpen(true)}
+        isTrailerModalOpen={isTrailerOpen}
       />
 
       {/* 2. LOWER CONTENT SECTIONS */}

@@ -33,23 +33,23 @@ const Top10Row: React.FC<Top10RowProps> = ({
   const top10 = items.slice(0, 10);
 
   return (
-    <section className="relative my-8 sm:my-12">
+    <section className="relative my-6 sm:my-12">
       {/* Section Header */}
-      <div className="flex items-end justify-between mb-5 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#2997ff] to-blue-600 shadow-[0_0_12px_rgba(41,151,255,0.6)]" />
+      <div className="flex items-end justify-between mb-4 sm:mb-5 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="w-1.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-[#2997ff] to-blue-600 shadow-[0_0_12px_rgba(41,151,255,0.6)]" />
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white font-display">
+              <h2 className="text-lg sm:text-2xl font-black tracking-tight text-white font-display">
                 {title}
               </h2>
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2997ff]/15 border border-[#2997ff]/30 text-[#2997ff] text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#2997ff]/15 border border-[#2997ff]/30 text-[#2997ff] text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider">
                 <Sparkles className="w-3 h-3" />
                 Live
               </span>
             </div>
             {subtitle && (
-              <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-zinc-400 mt-0.5 line-clamp-1">
                 {subtitle}
               </p>
             )}
@@ -78,7 +78,7 @@ const Top10Row: React.FC<Top10RowProps> = ({
       {/* Top 10 Horizontal Scrollable Carousel */}
       <div
         ref={rowRef}
-        className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-4 scroll-smooth ios-scroll"
+        className="flex items-stretch gap-3 sm:gap-6 overflow-x-auto no-scrollbar px-4 sm:px-6 lg:px-8 pb-3 sm:pb-4 scroll-smooth ios-scroll"
       >
         {top10.map((item, index) => {
           const rank = index + 1;
@@ -91,17 +91,16 @@ const Top10Row: React.FC<Top10RowProps> = ({
           return (
             <div
               key={item.id}
-              className="flex items-center shrink-0 group relative select-none"
-              style={{ width: '260px' }}
+              className="flex items-center shrink-0 group relative select-none w-[200px] sm:w-[260px]"
             >
-              {/* Giant Stylized Rank Number (Movy / Netflix Signature Style) */}
-              <div className="relative -mr-5 sm:-mr-8 z-0 pointer-events-none select-none">
+              {/* Giant Stylized Rank Number */}
+              <div className="relative -mr-4 sm:-mr-8 z-0 pointer-events-none select-none">
                 <span
-                  className="font-black text-[95px] sm:text-[130px] leading-none tracking-tighter transition-transform duration-300 group-hover:scale-105"
+                  className="font-black text-[80px] sm:text-[130px] leading-none tracking-tighter transition-transform duration-300 group-hover:scale-105"
                   style={{
                     fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                     color: '#05070a',
-                    WebkitTextStroke: '2.5px rgba(255, 255, 255, 0.35)',
+                    WebkitTextStroke: '2px rgba(255, 255, 255, 0.35)',
                     textShadow: '0 8px 30px rgba(0, 0, 0, 0.9)'
                   }}
                 >
@@ -112,7 +111,7 @@ const Top10Row: React.FC<Top10RowProps> = ({
               {/* Poster Card */}
               <Link
                 to={watchUrl}
-                className="relative z-10 w-[160px] sm:w-[185px] aspect-[2/3] rounded-2xl sm:rounded-[22px] overflow-hidden bg-zinc-900 border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.8)] transition-all duration-300 group-hover:scale-[1.04] group-hover:border-[#2997ff]/60 group-hover:shadow-[0_20px_45px_rgba(41,151,255,0.25)] block"
+                className="relative z-10 w-[130px] sm:w-[185px] aspect-[2/3] rounded-xl sm:rounded-[22px] overflow-hidden bg-zinc-900 border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.8)] transition-all duration-300 group-hover:scale-[1.04] group-hover:border-[#2997ff]/60 group-hover:shadow-[0_20px_45px_rgba(41,151,255,0.25)] block active:scale-95"
               >
                 {/* Poster Image */}
                 <img

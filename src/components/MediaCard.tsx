@@ -60,7 +60,7 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, className = '', showType = 
   return (
     <div
       onClick={handleClick}
-      className={`group relative rounded-2xl overflow-hidden bg-[#121215] border border-white/[0.08] hover:border-white/30 transition-all duration-300 ease-out cursor-pointer hover:shadow-apple-card-hover hover:scale-[1.03] hover:-translate-y-1 ${className}`}
+      className={`group relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#121215] border border-white/[0.08] hover:border-white/30 transition-all duration-300 ease-out cursor-pointer hover:shadow-apple-card-hover hover:scale-[1.03] active:scale-[0.97] ${className}`}
     >
       {/* Aspect Ratio 2/3 Poster Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-black">
@@ -78,53 +78,49 @@ const MediaCard: React.FC<MediaCardProps> = ({ item, className = '', showType = 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
         {/* Top Apple Badges */}
-        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10 pointer-events-none">
-          <span className="apple-badge text-[9px] px-1.5 py-0.5 rounded font-bold text-white/90">
-            4K UHD
-          </span>
-          {rating && (
-            <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
-              <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+        {rating && (
+          <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 pointer-events-none">
+            <span className="bg-black/60 backdrop-blur-md text-amber-300 text-[10px] sm:text-[11px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-1 border border-white/10">
+              <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400 text-amber-400" />
               {rating}
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Apple TV Play Hover Button Overlay */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/40 backdrop-blur-[2px]">
           <button
             onClick={handlePlayClick}
-            className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-apple-button hover:scale-110 active:scale-95 transition-transform"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white text-black flex items-center justify-center shadow-apple-button hover:scale-110 active:scale-95 transition-transform"
             title="Play Title"
           >
-            <Play className="w-5 h-5 fill-black text-black ml-0.5" />
+            <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-black text-black ml-0.5" />
           </button>
         </div>
 
         {/* Floating Quick Action: Up Next (+) */}
         <button
           onClick={handleWatchlistClick}
-          className={`absolute bottom-2.5 right-2.5 z-20 w-8 h-8 rounded-full backdrop-blur-xl flex items-center justify-center transition-all ${
-            inWatchlist
-              ? 'bg-white text-black shadow-apple-button'
-              : 'bg-black/60 text-white hover:bg-white/20 border border-white/15'
-          }`}
+          className={`absolute bottom-2 right-2 sm:bottom-2.5 sm:right-2.5 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full backdrop-blur-xl flex items-center justify-center transition-all active:scale-90 ${inWatchlist
+            ? 'bg-white text-black shadow-apple-button'
+            : 'bg-black/60 text-white hover:bg-white/20 border border-white/15'
+            }`}
           title={inWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
         >
-          {inWatchlist ? <Check className="w-4 h-4 stroke-[2.5]" /> : <Plus className="w-4 h-4" />}
+          {inWatchlist ? <Check className="w-3.5 h-3.5 stroke-[2.5]" /> : <Plus className="w-3.5 h-3.5" />}
         </button>
       </div>
 
       {/* Info Details Underneath */}
-      <div className="p-3 bg-[#121215]">
-        <h3 className="text-sm font-semibold text-white group-hover:text-white transition-colors line-clamp-1">
+      <div className="p-2.5 sm:p-3 bg-[#121215]">
+        <h3 className="text-xs sm:text-sm font-semibold text-white group-hover:text-white transition-colors truncate">
           {title}
         </h3>
-        <div className="flex items-center justify-between mt-1 text-xs text-zinc-400">
+        <div className="flex items-center justify-between mt-1 text-[10px] sm:text-xs text-zinc-400">
           <span>{year || '2024'}</span>
           {showType && (
-            <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
-              {isTv ? <Tv className="w-3 h-3 text-[#2997ff]" /> : <Film className="w-3 h-3 text-[#2997ff]" />}
+            <span className="text-[10px] sm:text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+              {isTv ? <Tv className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#2997ff]" /> : <Film className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#2997ff]" />}
               {isTv ? 'Series' : 'Feature'}
             </span>
           )}

@@ -76,6 +76,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [selectedQuality, setSelectedQuality] = useState<string>('auto');
   const [isResolvingDirect, setIsResolvingDirect] = useState(false);
 
+  const [isPlayerFocused, setIsPlayerFocused] = useState(false);
+  const playerTouchStartY = useRef<number | null>(null);
+
   const playerContainerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -100,7 +103,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setDirectStream(null);
     setIsDirectPlaying(false);
 
-    const msg = reason 
+    const msg = reason
       ? `${currentName} server not responding. Switched to ${nextServer.name.split(' ')[0]}.`
       : `Switched to ${nextServer.name.split(' ')[0]}.`;
 
@@ -135,11 +138,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => clearInterval(interval);
   }, [isLoading, currentServerId]);
 
-  // Close source dropdown on outside click
+  // Close source dropdown and release player focus on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sourceMenuRef.current && !sourceMenuRef.current.contains(e.target as Node)) {
         setIsSourceMenuOpen(false);
+      }
+      if (playerContainerRef.current && !playerContainerRef.current.contains(e.target as Node)) {
+        setIsPlayerFocused(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -364,6 +370,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         handleRefresh();
       } else if (e.key === 'Escape') {
         setIsSourceMenuOpen(false);
+        setIsPlayerFocused(false);
         if (showShortcuts) {
           setShowShortcuts(false);
         }
@@ -406,7 +413,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* 2. Apple QuickTime Cinema Player Frame */}
       <div
         ref={playerContainerRef}
-        className="group relative aspect-video w-full bg-[#05070a] rounded-3xl sm:rounded-[32px] overflow-hidden border border-white/[0.12] ring-1 ring-white/[0.06] shadow-[0_35px_100px_-20px_rgba(0,0,0,0.95)] transition-all duration-500"
+        onMouseEnter={() => setIsPlayerFocused(true)}
+        onMouseMove={() => setIsPlayerFocused(true)}
+        onMouseLeave={() => setIsPlayerFocused(false)}
+        className="group relative aspect-video w-full bg-[#05070a] rounded-none sm:rounded-[32px] overflow-hidden border-y sm:border border-white/[0.12] ring-0 sm:ring-1 sm:ring-white/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.9)] sm:shadow-[0_35px_100px_-20px_rgba(0,0,0,0.95)] transition-all duration-500"
       >
         {/* Apple TV Loading Indicator */}
         {isLoading && (
@@ -465,13 +475,45 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
         )}
 
+        {/* Smart Scroll Forwarding Shield: active on touch/scroll, automatically yields on cursor movement */}
+        {!isDirectPlaying && !isPlayerFocused && (
+          <div
+            className="absolute inset-0 z-20 cursor-pointer select-none"
+            onMouseEnter={() => setIsPlayerFocused(true)}
+            onMouseMove={() => setIsPlayerFocused(true)}
+            onWheel={(e) => {
+              window.scrollBy({
+                top: e.deltaY,
+                left: e.deltaX,
+                behavior: 'auto'
+              });
+            }}
+            onTouchStart={(e) => {
+              playerTouchStartY.current = e.touches[0].clientY;
+            }}
+            onTouchMove={(e) => {
+              if (playerTouchStartY.current !== null) {
+                const deltaY = playerTouchStartY.current - e.touches[0].clientY;
+                window.scrollBy({ top: deltaY, behavior: 'auto' });
+                playerTouchStartY.current = e.touches[0].clientY;
+              }
+            }}
+            onTouchEnd={() => {
+              playerTouchStartY.current = null;
+            }}
+            onClick={() => {
+              setIsPlayerFocused(true);
+            }}
+          />
+        )}
+
         {/* Server Switch Notification Toast */}
         {serverToast && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/85 backdrop-blur-2xl border border-[#2997ff]/40 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.8)] animate-fade-in pointer-events-auto">
             <div className="w-2 h-2 rounded-full bg-[#2997ff] animate-pulse" />
             <span>{serverToast.message}</span>
-            <button 
-              onClick={() => setServerToast(null)} 
+            <button
+              onClick={() => setServerToast(null)}
               className="ml-1.5 text-zinc-400 hover:text-white transition-colors"
               aria-label="Dismiss"
             >
@@ -496,31 +538,155 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       </div>
 
-      {/* 4. Apple TV Cinema Controller Shelf */}
-      <div className="mt-5 p-4 sm:p-5 rounded-3xl bg-[#101014]/90 backdrop-blur-3xl border border-white/[0.12] shadow-[0_20px_50px_rgba(0,0,0,0.75)] relative z-30">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      {/* 4A. Mobile Apple TV Minimalist Control Strip (sm:hidden) */}
+      <div className="sm:hidden mt-2 px-3.5 flex items-center justify-between gap-2">
+        {/* Source Dropdown Pill */}
+        <div className="relative" ref={sourceMenuRef}>
+          <button
+            onClick={() => setIsSourceMenuOpen(prev => !prev)}
+            className="h-8 px-3 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+            <span className="truncate max-w-[100px]">{server.name.split(' ')[0]}</span>
+            <ChevronDown className={`w-3 h-3 text-zinc-400 shrink-0 transition-transform ${isSourceMenuOpen ? 'rotate-180 text-white' : ''}`} />
+          </button>
 
-          {/* Left: Apple TV Source Selector Dropdown & Next Server Button */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative z-40" ref={sourceMenuRef}>
+          {/* Mobile Source Dropdown Popover */}
+          {isSourceMenuOpen && (
+            <div className="absolute left-0 top-full mt-2 w-72 rounded-2xl bg-[#141418] border border-white/25 shadow-[0_25px_60px_rgba(0,0,0,0.95)] backdrop-blur-3xl z-50 p-2 animate-fade-in divide-y divide-white/10 max-h-[320px] overflow-y-auto">
+              <div className="pb-2">
+                <div className="px-3 py-1 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-[#2997ff]" />
+                  <span>Direct 4K Streams</span>
+                </div>
+                <div className="space-y-1 mt-1">
+                  {directServers.map(s => {
+                    const isCurrent = s.id === currentServerId;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setCurrentServerId(s.id);
+                          setIsSourceMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                          isCurrent ? 'bg-[#2997ff] text-black font-bold shadow-md' : 'text-zinc-200 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <span>{s.name}</span>
+                        {isCurrent && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <div className="px-3 py-1 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Globe className="w-3 h-3 text-purple-400" />
+                  <span>Multi-Source Embed Backups</span>
+                </div>
+                <div className="space-y-1 mt-1">
+                  {embedServers.map(s => {
+                    const isCurrent = s.id === currentServerId;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setCurrentServerId(s.id);
+                          setIsSourceMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                          isCurrent ? 'bg-white text-black font-bold shadow-md' : 'text-zinc-300 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <span>{s.name}</span>
+                        {isCurrent && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Action Controls Right: Switch, TV Episodes, Fullscreen */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Quick Server Switch Icon */}
+          <button
+            onClick={() => switchToNextServer()}
+            className="h-8 w-8 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] text-zinc-200 flex items-center justify-center transition-all shadow-sm"
+            title="Switch Server"
+          >
+            <Radio className="w-3.5 h-3.5 text-[#2997ff]" />
+          </button>
+
+          {/* Episode Steppers */}
+          {mediaType === 'tv' && (
+            <>
+              {hasPrevEpisode && onPrevEpisode && (
+                <button
+                  onClick={onPrevEpisode}
+                  className="h-8 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 text-zinc-200 border border-white/[0.12] text-[11px] font-semibold flex items-center gap-1 transition-all shadow-sm"
+                  title="Previous Episode"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 -ml-0.5" />
+                  <span>Ep {episode - 1}</span>
+                </button>
+              )}
+              {hasNextEpisode && onNextEpisode && (
+                <button
+                  onClick={onNextEpisode}
+                  className="h-8 px-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 text-white text-[11px] font-bold flex items-center gap-1 transition-all shadow-sm shadow-[#0071e3]/30"
+                  title="Next Episode"
+                >
+                  <span>Ep {episode + 1}</span>
+                  <ChevronRight className="w-3.5 h-3.5 -mr-0.5" />
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Circular Apple TV Fullscreen Button */}
+          <button
+            onClick={handleFullscreen}
+            className="h-8 w-8 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] text-white flex items-center justify-center transition-all shadow-sm"
+            title="Fullscreen"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 4B. Desktop Apple TV Cinema Controller Shelf (hidden sm:block) */}
+      <div className="hidden sm:block mt-3.5 sm:mt-5 p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-[#141418]/85 backdrop-blur-3xl border border-white/[0.10] shadow-[0_16px_48px_rgba(0,0,0,0.7)] relative z-30">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+
+          {/* Row 1 / Left: Apple TV Source Selector Dropdown & Quick Switch */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Source Dropdown Pill */}
+            <div className="relative flex-1 sm:flex-initial">
               <button
                 onClick={() => setIsSourceMenuOpen(prev => !prev)}
-                className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-white/[0.08] hover:bg-white/[0.16] border border-white/[0.14] hover:border-white/30 text-white text-xs font-bold transition-all shadow-sm group hover:border-[#2997ff]/50"
+                className="w-full sm:w-auto h-10 flex items-center justify-between sm:justify-start gap-2.5 px-3.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] active:scale-[0.98] border border-white/[0.12] text-white text-xs font-semibold transition-all shadow-sm group"
               >
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <Server className="w-3.5 h-3.5 text-[#2997ff]" />
-                <span className="truncate max-w-[180px] sm:max-w-[240px]">{server.name}</span>
-                {server.badge && (
-                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-white/15 text-[#2997ff] border border-white/10 uppercase">
-                    {server.badge}
-                  </span>
-                )}
-                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 ${isSourceMenuOpen ? 'rotate-180 text-white' : ''}`} />
+                <div className="flex items-center gap-2 truncate">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse" />
+                  <Server className="w-3.5 h-3.5 text-[#2997ff] shrink-0" />
+                  <span className="truncate max-w-[140px] sm:max-w-[200px]">{server.name.split(' ')[0]}</span>
+                  {server.badge && (
+                    <span className="hidden sm:inline text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-white/15 text-[#2997ff] border border-white/10 uppercase shrink-0">
+                      {server.badge}
+                    </span>
+                  )}
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform duration-200 ${isSourceMenuOpen ? 'rotate-180 text-white' : ''}`} />
               </button>
 
               {/* Apple TV Frosted Glass Dropdown Popover */}
               {isSourceMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-72 sm:w-88 rounded-2xl bg-[#141418] border border-white/25 shadow-[0_25px_60px_rgba(0,0,0,0.95)] backdrop-blur-3xl z-50 p-2.5 animate-fade-in divide-y divide-white/10 max-h-[380px] sm:max-h-[460px] overflow-y-auto">
+                <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-[#141418] border border-white/25 shadow-[0_25px_60px_rgba(0,0,0,0.95)] backdrop-blur-3xl z-50 p-2.5 animate-fade-in divide-y divide-white/10 max-h-[360px] sm:max-h-[440px] overflow-y-auto">
                   {/* Category 1: Direct 4K Streams */}
                   <div className="pb-2">
                     <div className="px-3 py-1 text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -600,19 +766,28 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               )}
             </div>
 
-            {/* Quick Next Server Button */}
+            {/* Quick Switch Button (Desktop & Mobile, fits cleanly) */}
             <button
               onClick={() => switchToNextServer()}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-white/[0.08] hover:bg-white/[0.16] border border-white/[0.12] hover:border-white/30 text-zinc-300 hover:text-white text-xs font-semibold transition-all shadow-sm group"
-              title="Shift to next server (Shortcut: S)"
+              className="h-10 px-3.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] active:scale-[0.98] border border-white/[0.12] text-zinc-200 text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0"
+              title="Switch to next provider (Shortcut: S)"
             >
-              <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500 text-[#2997ff]" />
-              <span className="hidden sm:inline">Next Server</span>
+              <Radio className="w-3.5 h-3.5 text-[#2997ff]" />
+              <span className="text-xs">Switch</span>
+            </button>
+
+            {/* Reload Stream Button (Desktop) */}
+            <button
+              onClick={handleRefresh}
+              className="hidden sm:flex h-10 w-10 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] active:scale-[0.98] border border-white/[0.12] text-zinc-200 items-center justify-center shrink-0 transition-colors"
+              title="Reload Stream (R)"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-[#2997ff]" />
             </button>
 
             {/* Direct HLS Quality Selector Capsule */}
             {isDirectPlaying && directStream?.sources && directStream.sources.length > 0 && (
-              <div className="flex items-center gap-1.5 bg-white/[0.08] border border-white/[0.14] px-3 py-2 rounded-2xl text-xs font-semibold">
+              <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.08] border border-white/[0.14] px-3 h-10 rounded-xl text-xs font-semibold">
                 <Sliders className="w-3 h-3 text-[#2997ff]" />
                 <span className="text-[11px] text-zinc-400">Quality:</span>
                 <select
@@ -629,101 +804,79 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 </select>
               </div>
             )}
-
-            {/* Direct Stream Audio / Ad-Free Capsule */}
-            {isDirectPlaying && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
-                <Sparkles className="w-3 h-3" />
-                <span>Ad-Free Direct Feed</span>
-              </span>
-            )}
           </div>
 
-          {/* Right: Apple TV Remote-style Action Cluster */}
-          <div className="flex flex-wrap items-center justify-between lg:justify-end gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-white/[0.06]">
+          {/* Row 2 / Right: Actions Cluster (Symmetrical, Equal Widths on Mobile) */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {mediaType === 'tv' && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2 flex-1 sm:flex-initial">
                 {hasPrevEpisode && onPrevEpisode && (
                   <button
                     onClick={onPrevEpisode}
-                    className="flex items-center gap-1 px-3.5 py-2 bg-white/[0.08] hover:bg-white/[0.14] text-white rounded-full text-xs font-semibold border border-white/[0.1] transition-all"
+                    className="flex-1 sm:flex-initial h-10 px-3.5 bg-white/[0.08] hover:bg-white/[0.14] active:scale-[0.98] text-white rounded-xl text-xs font-semibold border border-white/[0.12] transition-all flex items-center justify-center gap-1 truncate shadow-sm"
+                    title="Previous Episode"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Ep {episode - 1}</span>
+                    <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Ep {episode - 1}</span>
                   </button>
                 )}
                 {hasNextEpisode && onNextEpisode && (
                   <button
                     onClick={onNextEpisode}
-                    className="flex items-center gap-1 px-4 py-2 bg-white hover:bg-zinc-200 text-black rounded-full text-xs font-bold transition-all shadow-apple-button"
+                    className="flex-1 sm:flex-initial h-10 px-3.5 bg-[#0071e3] hover:bg-[#0077ed] active:scale-[0.98] text-white rounded-xl text-xs font-bold transition-all shadow-[0_4px_14px_rgba(0,113,227,0.3)] border border-[#0071e3]/40 flex items-center justify-center gap-1 truncate"
+                    title="Next Episode"
                   >
-                    <span>Ep {episode + 1}</span>
-                    <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                    <span className="truncate">Ep {episode + 1}</span>
+                    <ChevronRight className="w-3.5 h-3.5 shrink-0 stroke-[2.5]" />
                   </button>
                 )}
               </div>
             )}
 
-            <button
-              onClick={() => switchToNextServer()}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-zinc-300 hover:text-white rounded-full text-xs font-medium transition-colors"
-              title="Switch to next provider if buffering (S)"
-            >
-              <Radio className="w-3.5 h-3.5 text-[#2997ff]" />
-              <span className="hidden sm:inline">Next Server</span>
-              <span className="sm:hidden">Next</span>
-            </button>
-
-            <button
-              onClick={handleRefresh}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-zinc-300 hover:text-white rounded-full text-xs font-medium transition-colors"
-              title="Reload Stream (R)"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-[#2997ff]" />
-              <span className="hidden sm:inline">Reload</span>
-            </button>
-
+            {/* Theater Mode (Desktop only) */}
             <button
               onClick={() => setIsTheater(!isTheater)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-zinc-300 hover:text-white rounded-full text-xs font-medium transition-colors hidden md:flex"
+              className="h-10 px-3.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] text-zinc-300 hover:text-white text-xs font-semibold transition-colors hidden md:flex items-center gap-1.5"
               title="Toggle Theater Mode (T)"
             >
               <span>{isTheater ? 'Standard' : 'Theater'}</span>
             </button>
 
+            {/* Fullscreen Button */}
             <button
               onClick={handleFullscreen}
-              className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-zinc-200 text-black rounded-full text-xs font-bold transition-all shadow-apple-button"
+              className={`h-10 px-4 rounded-xl ${mediaType === 'tv' ? 'flex-1 sm:flex-initial' : 'flex-1 sm:flex-initial'} bg-white/[0.08] hover:bg-white/[0.14] active:scale-[0.98] border border-white/[0.12] text-white text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-1.5`}
               title="Fullscreen (F)"
             >
-              <Maximize2 className="w-3.5 h-3.5 stroke-[2.5]" />
+              <Maximize2 className="w-3.5 h-3.5" />
               <span>Fullscreen</span>
             </button>
           </div>
         </div>
 
         {/* Apple TV Tech Specs & Shortcuts Bar */}
-        <div className="mt-4 pt-3.5 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-zinc-400">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="font-medium text-zinc-300">
+        <div className="mt-2.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-[#8e8e93]">
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <span className="truncate">
               {isDirectPlaying
-                ? 'Direct High-Speed Stream'
-                : `Connected via ${server.name.split(' ')[0]}`}
+                ? 'Direct High-Speed Stream • 4K UHD'
+                : `Connected via ${server.name.split(' ')[0]} • Auto 1080p HD`}
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-zinc-500">
-            <span className="hidden md:inline">Shortcuts: <strong className="text-zinc-300">F</strong> Fullscreen • <strong className="text-zinc-300">T</strong> Theater • <strong className="text-zinc-300">R</strong> Reload • <strong className="text-zinc-300">S</strong> Next Server</span>
+          <div className="hidden md:flex items-center gap-3 text-zinc-500 text-[10px]">
+            <span>Shortcuts: <strong className="text-zinc-400">F</strong> Fullscreen • <strong className="text-zinc-400">S</strong> Next Server • <strong className="text-zinc-400">R</strong> Reload</span>
             <button
               onClick={() => setShowShortcuts(s => !s)}
-              className="text-[#2997ff] hover:underline flex items-center gap-1 font-semibold"
+              className="text-[#2997ff] hover:underline flex items-center gap-1 font-semibold ml-1"
             >
-              <span>Shortcuts</span>
+              <span>Guide</span>
             </button>
           </div>
         </div>
       </div>
+
 
       {/* 5. Apple TV Keyboard Shortcuts Modal */}
       {showShortcuts && (

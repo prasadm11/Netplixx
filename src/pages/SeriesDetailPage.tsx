@@ -133,6 +133,7 @@ const SeriesDetailPage: React.FC = () => {
         onPlay={handlePlay}
         playButtonText={playButtonText}
         onOpenTrailerModal={() => setIsTrailerOpen(true)}
+        isTrailerModalOpen={isTrailerOpen}
         badgeText={series.status}
       />
 
