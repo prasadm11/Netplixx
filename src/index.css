@@ -21,6 +21,13 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  img,
+  video {
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
   h1,
   h2,
   h3,
