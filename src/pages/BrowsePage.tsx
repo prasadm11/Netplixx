@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Filter, SlidersHorizontal, Search, Star, Sparkles, Loader2, RotateCcw } from 'lucide-react';
 import MediaCard from '../components/MediaCard';
 import { fetchDiscoverMedia, fetchAnimePopular, fetchAnimeTrending } from '../services/tmdb';
+import { WATCH_PROVIDERS } from '../constants/providers';
 import { MediaItem } from '../types';
 
 const GENRES_MOVIE = [
@@ -64,12 +65,15 @@ const RATINGS = [
 ];
 
 const BrowsePage: React.FC = () => {
-  const { type = 'movie' } = useParams<{ type: string }>();
+  const { type = 'movie', id: providerRouteId } = useParams<{ type?: string; id?: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const providerParam = providerRouteId || searchParams.get('provider') || 'all';
 
   const currentType = type === 'tv' ? 'tv' : type === 'anime' ? 'anime' : 'movie';
 
   // Filters State
+  const [selectedProvider, setSelectedProvider] = useState(providerParam);
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [selectedYear, setSelectedYear] = useState('All Years');
   const [selectedSort, setSelectedSort] = useState('popularity.desc');
@@ -81,6 +85,13 @@ const BrowsePage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const genres = currentType === 'tv' ? GENRES_TV : GENRES_MOVIE;
+
+  useEffect(() => {
+    if (providerParam !== selectedProvider) {
+      setSelectedProvider(providerParam);
+      setPage(1);
+    }
+  }, [providerParam]);
 
   // Reset filters when switching type
   useEffect(() => {
@@ -106,6 +117,7 @@ const BrowsePage: React.FC = () => {
         } else {
           const res = await fetchDiscoverMedia({
             mediaType: currentType,
+            provider: selectedProvider !== 'all' ? selectedProvider : undefined,
             genre: selectedGenre !== 'all' ? selectedGenre : undefined,
             year: selectedYear !== 'All Years' ? selectedYear : undefined,
             sortBy: selectedSort,
@@ -124,15 +136,18 @@ const BrowsePage: React.FC = () => {
     };
 
     loadItems();
-  }, [currentType, selectedGenre, selectedYear, selectedSort, selectedRating, page]);
+  }, [currentType, selectedProvider, selectedGenre, selectedYear, selectedSort, selectedRating, page]);
 
   const handleResetFilters = () => {
+    setSelectedProvider('all');
     setSelectedGenre('all');
     setSelectedYear('All Years');
     setSelectedSort('popularity.desc');
     setSelectedRating('');
     setPage(1);
+    setSearchParams({});
   };
+
 
   return (
     <div className="min-h-screen bg-[#05070a] text-white pt-24 pb-20">
@@ -185,7 +200,37 @@ const BrowsePage: React.FC = () => {
 
         {/* Filter Controls Bar */}
         <div className="my-6 p-4 sm:p-5 rounded-2xl bg-white/[0.04] border border-white/10 backdrop-blur-xl">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* Streaming Provider Dropdown */}
+            {currentType !== 'anime' && (
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">
+                  Provider
+                </label>
+                <select
+                  value={selectedProvider}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedProvider(val);
+                    setPage(1);
+                    if (val !== 'all') {
+                      setSearchParams({ provider: val });
+                    } else {
+                      setSearchParams({});
+                    }
+                  }}
+                  className="w-full bg-black/60 border border-white/15 rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-[#2997ff] cursor-pointer"
+                >
+                  <option value="all" className="bg-zinc-900 text-white">All Providers</option>
+                  {WATCH_PROVIDERS.map(p => (
+                    <option key={p.id} value={String(p.id)} className="bg-zinc-900 text-white">
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Genre Dropdown */}
             {currentType !== 'anime' && (
               <div>

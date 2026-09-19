@@ -192,3 +192,14 @@ export interface PersonDetail {
     facebook_id?: string;
   };
 }
+
+export interface WatchProviderItem {
+  id: number;
+  name: string;
+  logo: string;
+  networkId?: number;
+  brandColor: string;
+  bgGradient: string;
+  description: string;
+}
+

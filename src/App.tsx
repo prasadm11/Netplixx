@@ -63,6 +63,7 @@ const App: React.FC = () => {
           <Route path="/shorts" element={<ShortsPage />} />
           <Route path="/lists" element={<ListsPage />} />
           <Route path="/continue-watching" element={<ContinueWatchingPage />} />
+          <Route path="/provider/:id" element={<BrowsePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           {/* Fallback route */}
           <Route path="*" element={<HomePage />} />

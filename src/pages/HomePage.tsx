@@ -8,17 +8,17 @@ import ContinueWatchingCard from '../components/ContinueWatchingCard';
 import {
   fetchTrending,
   fetchTopRated,
-  fetchNowPlayingIndia,
+  fetchNowPlaying,
   fetchSouthIndianBlockbusters,
-  INDIAN_LANGUAGES,
   getImageUrl
 } from '../services/tmdb';
-import { getContinueWatching, removeContinueWatching } from '../services/storage';
+import { getContinueWatching, removeContinueWatching, getRegion } from '../services/storage';
 import { MediaItem, ContinueWatchingItem } from '../types';
 import { GENRES } from '../constants/genres';
 import { HeroSkeleton, MovieRowSkeleton } from '../components/Skeletons';
 
 const HomePage: React.FC = () => {
+  const [currentRegion, setCurrentRegion] = useState(() => getRegion());
   const [trendingAll, setTrendingAll] = useState<MediaItem[]>([]);
   const [trendingMovies, setTrendingMovies] = useState<MediaItem[]>([]);
   const [trendingTv, setTrendingTv] = useState<MediaItem[]>([]);
@@ -28,45 +28,55 @@ const HomePage: React.FC = () => {
   const [continueWatching, setContinueWatching] = useState<ContinueWatchingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        const [all, movies, tv, south, inTheatres, top] = await Promise.allSettled([
-          fetchTrending('all'),
-          fetchTrending('movie'),
-          fetchTrending('tv'),
-          fetchSouthIndianBlockbusters(),
-          fetchNowPlayingIndia(),
-          fetchTopRated('movie')
-        ]);
+  const loadData = async (reg: string = getRegion()) => {
+    setLoading(true);
+    try {
+      const isIndia = reg === 'IN';
+      const [all, movies, tv, southOrSpecial, inTheatres, top] = await Promise.allSettled([
+        fetchTrending('all'),
+        fetchTrending('movie'),
+        fetchTrending('tv'),
+        isIndia ? fetchSouthIndianBlockbusters() : fetchTrending('movie'),
+        fetchNowPlaying(reg),
+        fetchTopRated('movie')
+      ]);
 
-        if (isMounted) {
-          setTrendingAll(all.status === 'fulfilled' ? all.value : []);
-          setTrendingMovies(movies.status === 'fulfilled' ? movies.value : []);
-          setTrendingTv(tv.status === 'fulfilled' ? tv.value : []);
-          setSouthMovies(south.status === 'fulfilled' ? south.value : []);
-          setNowPlaying(inTheatres.status === 'fulfilled' ? inTheatres.value : []);
-          setTopRated(top.status === 'fulfilled' ? top.value : []);
-          setContinueWatching(getContinueWatching());
-        }
-      } catch (e) {
-        console.warn('Error loading homepage content from TMDB:', e);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
+      setTrendingAll(all.status === 'fulfilled' ? all.value : []);
+      setTrendingMovies(movies.status === 'fulfilled' ? movies.value : []);
+      setTrendingTv(tv.status === 'fulfilled' ? tv.value : []);
+      setSouthMovies(southOrSpecial.status === 'fulfilled' ? southOrSpecial.value : []);
+      setNowPlaying(inTheatres.status === 'fulfilled' ? inTheatres.value : []);
+      setTopRated(top.status === 'fulfilled' ? top.value : []);
+      setContinueWatching(getContinueWatching());
+    } catch (e) {
+      console.warn('Error loading homepage content from TMDB:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData(currentRegion);
+
+    const handleRegionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ region: string }>;
+      const newRegion = customEvent.detail?.region || getRegion();
+      setCurrentRegion(newRegion);
+      loadData(newRegion);
     };
 
-    loadData();
+    window.addEventListener('region-changed', handleRegionChange);
+    window.addEventListener('storage', handleRegionChange);
+
     return () => {
-      isMounted = false;
+      window.removeEventListener('region-changed', handleRegionChange);
+      window.removeEventListener('storage', handleRegionChange);
     };
   }, []);
 
   const handleRemoveContinueWatching = (e: React.MouseEvent, id: number, mediaType: 'movie' | 'tv') => {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
     removeContinueWatching(id, mediaType);
     setContinueWatching(getContinueWatching());
   };
@@ -76,9 +86,9 @@ const HomePage: React.FC = () => {
       <div className="min-h-screen bg-black text-[#f5f5f7]">
         <HeroSkeleton />
         <div className="py-4">
-          <MovieRowSkeleton title="Trending in India" />
-          <MovieRowSkeleton title="Popular Indian Web Series" />
-          <MovieRowSkeleton title="South Indian Cinema" />
+          <MovieRowSkeleton title={currentRegion === 'IN' ? "Trending in India" : "Trending Now"} />
+          <MovieRowSkeleton title={currentRegion === 'IN' ? "Popular Indian Web Series" : "Popular TV Series"} />
+          <MovieRowSkeleton title={currentRegion === 'IN' ? "South Indian Cinema" : "Critically Acclaimed Cinema"} />
         </div>
       </div>
     );
@@ -119,7 +129,6 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-
       {/* Movy Signature TOP 10 Showcase */}
       {trendingAll.length > 0 && (
         <Top10Row items={trendingAll} title="TOP 10 on Netplix" subtitle="The most watched titles streaming right now" />
@@ -145,20 +154,32 @@ const HomePage: React.FC = () => {
         />
       )}
 
-      {/* South Indian Blockbusters */}
+      {/* South Indian Cinema (India) / Regional Spotlight (Global) */}
       {southMovies.length > 0 && (
         <MovieRow
-          title="South Indian Cinema"
-          subtitle="Top action spectacles, thrillers, and acclaimed stories"
+          title={currentRegion === 'IN' ? 'South Indian Cinema' : 'Critically Acclaimed Cinema'}
+          subtitle={
+            currentRegion === 'IN'
+              ? 'Top action spectacles, thrillers, and acclaimed stories'
+              : 'Award-winning international storytelling and cinematic gems'
+          }
           items={southMovies}
-          seeAllLink="/movies?lang=te"
+          seeAllLink={currentRegion === 'IN' ? '/movies?lang=te' : '/movies?sort=popularity.desc'}
         />
       )}
 
       {/* Now Playing in Theatres */}
       {nowPlaying.length > 0 && (
         <MovieRow
-          title="Now Playing in Theatres"
+          title={
+            currentRegion === 'IN'
+              ? 'Now Playing in Indian Theatres'
+              : currentRegion === 'US'
+              ? 'Now Playing in US Theatres'
+              : currentRegion === 'GB'
+              ? 'Now Playing in UK Theatres'
+              : 'Now Playing in Theatres'
+          }
           subtitle="Recent theatrical premieres and current cinema releases"
           items={nowPlaying}
           seeAllLink="/movies?sort=primary_release_date.desc"

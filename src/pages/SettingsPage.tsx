@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Server, Sliders, Check, Trash2, Key, RefreshCw, AlertCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Settings, Server, Sliders, Check, Trash2, Key, RefreshCw, AlertCircle, ExternalLink, ShieldCheck, Globe, Sparkles } from 'lucide-react';
 import { getPlayerSettings, savePlayerSettings, DEFAULT_SETTINGS } from '../services/storage';
 import { VIDEO_SERVERS } from '../services/streamingServers';
 import { getTmdbApiKey, setTmdbApiKey, testTmdbConnection } from '../services/tmdb';
+import { SUPPORTED_REGIONS } from '../constants/providers';
 import { PlayerSettings } from '../types';
 
 const SettingsPage: React.FC = () => {
@@ -165,62 +166,144 @@ const SettingsPage: React.FC = () => {
 
           {/* Region & Language Preferences */}
           <div className="p-6 sm:p-8 rounded-3xl apple-glass shadow-apple-glass">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xl">🇮🇳</span>
-                <h3 className="text-base font-bold text-white">Region & Content Catalog</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#2997ff]/15 border border-[#2997ff]/25 flex items-center justify-center">
+                  <Globe className="w-4 h-4 text-[#2997ff]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-tight">Region & Content Catalog</h3>
+                  <p className="text-[11px] text-zinc-400">Synchronizes all streaming service providers to this region</p>
+                </div>
               </div>
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#2997ff]/20 text-[#2997ff] border border-[#2997ff]/30">
-                {settings.region === 'IN' || !settings.region ? 'India (IN) Active' : 'Global Active'}
-              </span>
+              {(() => {
+                const currentReg = (settings.region || 'IN').toUpperCase();
+                const activeOption = SUPPORTED_REGIONS.find(r => r.code === currentReg) || SUPPORTED_REGIONS[0];
+                return (
+                  <span className="flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-[#2997ff]/20 text-[#2997ff] border border-[#2997ff]/30 self-start sm:self-auto">
+                    <span>{activeOption.flag}</span>
+                    <span>{activeOption.name} Active</span>
+                  </span>
+                );
+              })()}
             </div>
-            <p className="text-xs sm:text-sm text-zinc-400 mb-5">
-              Set the regional content priority for your Home, Movies, and TV series feeds.
+
+            <p className="text-xs sm:text-sm text-zinc-400 mb-5 leading-relaxed">
+              Select your preferred country or region. All content feeds, trending collections, and streaming service providers throughout the app will automatically serve the catalog from this region.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-              <button
-                onClick={() => updateSetting('region', 'IN')}
-                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${settings.region === 'IN' || !settings.region
-                    ? 'bg-white text-black border-white shadow-apple-button'
-                    : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-zinc-300'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🇮🇳</span>
-                  <div>
-                    <h5 className={`text-xs font-bold ${settings.region === 'IN' || !settings.region ? 'text-black' : 'text-white'}`}>
-                      India (IN) — Default
-                    </h5>
-                    <span className={`text-[10px] ${settings.region === 'IN' || !settings.region ? 'text-zinc-700' : 'text-zinc-400'}`}>
-                      Bollywood, South Indian & Indian OTT Web Series
-                    </span>
-                  </div>
-                </div>
-                {(settings.region === 'IN' || !settings.region) && <Check className="w-4 h-4 text-black stroke-[2.5]" />}
-              </button>
+            {/* Regional Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mb-5">
+              {SUPPORTED_REGIONS.map((region) => {
+                const isSelected = (settings.region || 'IN').toUpperCase() === region.code;
 
-              <button
-                onClick={() => updateSetting('region', 'GLOBAL')}
-                className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${settings.region === 'GLOBAL'
-                    ? 'bg-white text-black border-white shadow-apple-button'
-                    : 'bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.08] text-zinc-300'
-                  }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🌐</span>
-                  <div>
-                    <h5 className={`text-xs font-bold ${settings.region === 'GLOBAL' ? 'text-black' : 'text-white'}`}>
-                      Global / Worldwide
-                    </h5>
-                    <span className={`text-[10px] ${settings.region === 'GLOBAL' ? 'text-zinc-700' : 'text-zinc-400'}`}>
-                      US, UK & Worldwide international releases
-                    </span>
+                return (
+                  <button
+                    key={region.code}
+                    onClick={() => updateSetting('region', region.code)}
+                    className={`p-4 rounded-2xl border text-left flex flex-col justify-between transition-all duration-300 relative overflow-hidden group/card ${
+                      isSelected
+                        ? 'bg-white text-black border-white shadow-apple-button scale-[1.01]'
+                        : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/[0.08] hover:border-white/20 text-zinc-300'
+                    }`}
+                  >
+                    {/* Active highlight glow */}
+                    {isSelected && (
+                      <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#2997ff]/20 rounded-full blur-2xl pointer-events-none" />
+                    )}
+
+                    {/* Top row: Flag, Name, Checkmark */}
+                    <div className="flex items-start justify-between gap-2 mb-2 relative z-10">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl sm:text-3xl filter drop-shadow-sm select-none">{region.flag}</span>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h5 className={`text-xs font-bold tracking-tight ${isSelected ? 'text-black' : 'text-white'}`}>
+                              {region.name}
+                            </h5>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                                isSelected
+                                  ? 'bg-black/10 text-black'
+                                  : 'bg-white/10 text-zinc-400'
+                              }`}
+                            >
+                              {region.code}
+                            </span>
+                          </div>
+                          <span
+                            className={`text-[10px] font-semibold ${
+                              isSelected ? 'text-blue-700' : 'text-[#2997ff]'
+                            }`}
+                          >
+                            {region.badge}
+                          </span>
+                        </div>
+                      </div>
+
+                      {isSelected ? (
+                        <div className="w-5 h-5 rounded-full bg-black flex items-center justify-center shrink-0">
+                          <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full border border-white/20 shrink-0 opacity-0 group-hover/card:opacity-100 transition-opacity" />
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <p
+                      className={`text-[11px] leading-relaxed mb-3 line-clamp-2 relative z-10 font-normal ${
+                        isSelected ? 'text-zinc-700 font-medium' : 'text-zinc-400'
+                      }`}
+                    >
+                      {region.description}
+                    </p>
+
+                    {/* Popular Providers Pills */}
+                    <div className="flex flex-wrap items-center gap-1 relative z-10 pt-1 border-t border-current/10">
+                      {region.popularProviders.slice(0, 4).map((prov, i) => (
+                        <span
+                          key={i}
+                          className={`text-[9px] px-2 py-0.5 rounded-full font-medium ${
+                            isSelected
+                              ? 'bg-black/[0.08] text-zinc-800'
+                              : 'bg-white/[0.06] text-zinc-400'
+                          }`}
+                        >
+                          {prov}
+                        </span>
+                      ))}
+                      {region.popularProviders.length > 4 && (
+                        <span
+                          className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                            isSelected ? 'text-zinc-600' : 'text-zinc-500'
+                          }`}
+                        >
+                          +{region.popularProviders.length - 4} more
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Region Confirmation Callout */}
+            {(() => {
+              const currentReg = (settings.region || 'IN').toUpperCase();
+              const activeOption = SUPPORTED_REGIONS.find(r => r.code === currentReg) || SUPPORTED_REGIONS[0];
+              return (
+                <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center gap-3">
+                  <span className="text-xl shrink-0">{activeOption.flag}</span>
+                  <div className="text-xs">
+                    <span className="font-bold text-white">Active Catalog: {activeOption.name} ({activeOption.code})</span>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">
+                      All streaming channels (Netflix, Prime Video, Disney+, Apple TV+, etc.) and movie feeds are tuned to {activeOption.name}&apos;s catalog: {activeOption.catalogSubtitle}.
+                    </p>
                   </div>
                 </div>
-                {settings.region === 'GLOBAL' && <Check className="w-4 h-4 text-black stroke-[2.5]" />}
-              </button>
-            </div>
+              );
+            })()}
           </div>
 
           {/* Default Server */}

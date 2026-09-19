@@ -180,7 +180,15 @@ export function savePlayerSettings(settings: Partial<PlayerSettings>): void {
     const current = getPlayerSettings();
     const updated = { ...current, ...settings };
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updated));
+    localStorage.setItem(LEGACY_KEYS.SETTINGS, JSON.stringify(updated));
+
+    if (settings.region) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('region-changed', { detail: { region: settings.region } }));
+      }
+    }
   } catch (e) {
     console.error('Failed to save settings:', e);
   }
 }
+

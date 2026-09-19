@@ -1,5 +1,6 @@
 import { MediaItem, MovieDetail, TvDetail, Season, ShortItem, PersonDetail, MediaType } from '../types';
 import { getRegion } from './storage';
+import { WATCH_PROVIDERS } from '../constants/providers';
 
 const DEFAULT_API_KEY = '4e44d9029b1270a757cddc766a1bcb63';
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -130,6 +131,18 @@ export const INDIAN_LANGUAGES = [
   { code: 'en', name: 'Hollywood / English' }
 ];
 
+export const GLOBAL_LANGUAGES = [
+  { code: 'all', name: 'All Languages' },
+  { code: 'en', name: 'English' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'hi', name: 'Hindi' }
+];
+
+
 export async function fetchTrending(mediaType: 'all' | 'movie' | 'tv' = 'all'): Promise<MediaItem[]> {
   const currentRegion = getRegion();
 
@@ -210,6 +223,9 @@ export async function fetchMovies(
     params.with_origin_country = 'IN';
     params.region = 'IN';
     params.watch_region = 'IN';
+  } else if (currentRegion && currentRegion !== 'GLOBAL') {
+    params.region = currentRegion;
+    params.watch_region = currentRegion;
   }
 
   const data = await tmdbFetch<{ results: MediaItem[]; total_pages: number }>('/discover/movie', params);
@@ -242,6 +258,9 @@ export async function fetchTvShows(
     params.with_origin_country = 'IN';
     params.region = 'IN';
     params.watch_region = 'IN';
+  } else if (currentRegion && currentRegion !== 'GLOBAL') {
+    params.region = currentRegion;
+    params.watch_region = currentRegion;
   }
 
   const data = await tmdbFetch<{ results: MediaItem[]; total_pages: number }>('/discover/tv', params);
@@ -268,12 +287,18 @@ export async function fetchTopRated(mediaType: 'movie' | 'tv' = 'movie'): Promis
   return (data.results || []).map(item => ({ ...item, media_type: mediaType }));
 }
 
-export async function fetchNowPlayingIndia(): Promise<MediaItem[]> {
+export async function fetchNowPlaying(regionCode?: string): Promise<MediaItem[]> {
+  const currentRegion = regionCode || getRegion();
+  const reg = currentRegion === 'GLOBAL' ? 'US' : currentRegion;
   const data = await tmdbFetch<{ results: MediaItem[] }>('/movie/now_playing', {
-    region: 'IN',
+    region: reg,
     page: 1
   });
   return (data.results || []).map(item => ({ ...item, media_type: 'movie' }));
+}
+
+export async function fetchNowPlayingIndia(): Promise<MediaItem[]> {
+  return fetchNowPlaying('IN');
 }
 
 export async function fetchIndianMoviesByLanguage(lang: string = 'hi', page: number = 1): Promise<MediaItem[]> {
@@ -480,6 +505,7 @@ export interface DiscoverFilters {
   language?: string;
   sortBy?: string;
   mood?: string;
+  provider?: string | number;
   page?: number;
 }
 
@@ -490,6 +516,26 @@ export async function fetchDiscoverMedia(filters: DiscoverFilters = {}): Promise
     include_adult: 'false',
     sort_by: filters.sortBy || 'popularity.desc'
   };
+
+  // Watch Provider filter
+  if (filters.provider) {
+    const region = getRegion();
+    const watchRegion = region === 'GLOBAL' ? 'US' : region;
+    let effectiveProvider = String(filters.provider);
+    const providerItem = WATCH_PROVIDERS.find(p => String(p.id) === String(filters.provider));
+    if (providerItem?.regionalProviderIds?.[region]) {
+      effectiveProvider = String(providerItem.regionalProviderIds[region]);
+    } else if (region === 'IN') {
+      if (effectiveProvider === '9') effectiveProvider = '119|9';
+      if (effectiveProvider === '337') effectiveProvider = '2336|122|337';
+      if (effectiveProvider === '2336') effectiveProvider = '2336|122|220';
+    }
+    params['with_watch_providers'] = effectiveProvider;
+    params['watch_region'] = watchRegion;
+    if (region === 'IN' && !filters.language) {
+      params['with_origin_country'] = 'IN';
+    }
+  }
 
   // Genre filter
   if (filters.genre && filters.genre !== 'all') {
@@ -567,6 +613,131 @@ export async function fetchDiscoverMedia(filters: DiscoverFilters = {}): Promise
     total_results: res.total_results || 0
   };
 }
+
+export async function fetchByProvider(
+  providerId: number | string,
+  networkId?: number,
+  mediaType: 'all' | 'movie' | 'tv' = 'all',
+  page: number = 1
+): Promise<MediaItem[]> {
+  try {
+    const region = getRegion();
+    const isIndia = region === 'IN';
+    const watchRegion = region === 'GLOBAL' ? 'US' : region;
+
+    // Resolve regional provider ID aliases
+    let effectiveProviderId = String(providerId);
+    const providerItem = WATCH_PROVIDERS.find(p => String(p.id) === String(providerId));
+    if (providerItem?.regionalProviderIds?.[region]) {
+      effectiveProviderId = String(providerItem.regionalProviderIds[region]);
+    } else if (isIndia) {
+      if (String(providerId) === '9') effectiveProviderId = '119|9';
+      if (String(providerId) === '337') effectiveProviderId = '2336|122|337';
+      if (String(providerId) === '2336') effectiveProviderId = '2336|122|220';
+    }
+
+    const movieParams: Record<string, string | number> = {
+      with_watch_providers: effectiveProviderId,
+      watch_region: watchRegion,
+      sort_by: 'popularity.desc',
+      include_adult: 'false',
+      page
+    };
+
+    const tvParams: Record<string, string | number> = {
+      with_watch_providers: effectiveProviderId,
+      watch_region: watchRegion,
+      sort_by: 'popularity.desc',
+      include_adult: 'false',
+      page
+    };
+
+    if (isIndia) {
+      // For India region: query both Indian productions and general provider catalog in India
+      const [inMoviesRes, inTvRes, allMoviesRes, allTvRes] = await Promise.allSettled([
+        tmdbFetch<{ results: MediaItem[] }>('/discover/movie', {
+          ...movieParams,
+          with_origin_country: 'IN'
+        }),
+        tmdbFetch<{ results: MediaItem[] }>('/discover/tv', {
+          ...tvParams,
+          with_origin_country: 'IN'
+        }),
+        tmdbFetch<{ results: MediaItem[] }>('/discover/movie', movieParams),
+        tmdbFetch<{ results: MediaItem[] }>('/discover/tv', tvParams)
+      ]);
+
+      const inMovies = inMoviesRes.status === 'fulfilled' ? (inMoviesRes.value.results || []).map(i => ({ ...i, media_type: 'movie' as MediaType })) : [];
+      const inTv = inTvRes.status === 'fulfilled' ? (inTvRes.value.results || []).map(i => ({ ...i, media_type: 'tv' as MediaType })) : [];
+      const allMovies = allMoviesRes.status === 'fulfilled' ? (allMoviesRes.value.results || []).map(i => ({ ...i, media_type: 'movie' as MediaType })) : [];
+      const allTv = allTvRes.status === 'fulfilled' ? (allTvRes.value.results || []).map(i => ({ ...i, media_type: 'tv' as MediaType })) : [];
+
+      if (mediaType === 'movie') {
+        const seen = new Set<number>();
+        const res: MediaItem[] = [];
+        for (const m of [...inMovies, ...allMovies]) {
+          if (!seen.has(m.id)) {
+            seen.add(m.id);
+            res.push(m);
+          }
+        }
+        return res;
+      }
+
+      if (mediaType === 'tv') {
+        const seen = new Set<number>();
+        const res: MediaItem[] = [];
+        for (const t of [...inTv, ...allTv]) {
+          if (!seen.has(t.id)) {
+            seen.add(t.id);
+            res.push(t);
+          }
+        }
+        return res;
+      }
+
+      // 'all': Interleave Indian content with general provider titles
+      const seen = new Set<number>();
+      const res: MediaItem[] = [];
+      const maxLen = Math.max(inMovies.length, inTv.length, allMovies.length, allTv.length);
+      for (let i = 0; i < maxLen; i++) {
+        if (inMovies[i] && !seen.has(inMovies[i].id)) { seen.add(inMovies[i].id); res.push(inMovies[i]); }
+        if (inTv[i] && !seen.has(inTv[i].id)) { seen.add(inTv[i].id); res.push(inTv[i]); }
+        if (allMovies[i] && !seen.has(allMovies[i].id)) { seen.add(allMovies[i].id); res.push(allMovies[i]); }
+        if (allTv[i] && !seen.has(allTv[i].id)) { seen.add(allTv[i].id); res.push(allTv[i]); }
+      }
+      return res;
+    }
+
+    // For US / Global / other regions:
+    if (mediaType === 'movie') {
+      const res = await tmdbFetch<{ results: MediaItem[] }>('/discover/movie', movieParams);
+      return (res.results || []).map(item => ({ ...item, media_type: 'movie' as MediaType }));
+    }
+
+    if (mediaType === 'tv') {
+      const res = await tmdbFetch<{ results: MediaItem[] }>('/discover/tv', tvParams);
+      return (res.results || []).map(item => ({ ...item, media_type: 'tv' as MediaType }));
+    }
+
+    // Both movie and tv combined
+    const [movieRes, tvRes] = await Promise.allSettled([
+      tmdbFetch<{ results: MediaItem[] }>('/discover/movie', movieParams),
+      tmdbFetch<{ results: MediaItem[] }>('/discover/tv', tvParams)
+    ]);
+
+    const movies = movieRes.status === 'fulfilled' ? (movieRes.value.results || []).map(item => ({ ...item, media_type: 'movie' as MediaType })) : [];
+    const tvs = tvRes.status === 'fulfilled' ? (tvRes.value.results || []).map(item => ({ ...item, media_type: 'tv' as MediaType })) : [];
+
+    const combined = [...movies, ...tvs].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+    return combined;
+  } catch (err) {
+    console.error('Error fetching by provider:', err);
+    return [];
+  }
+}
+
+
 
 export async function fetchNewAndPopular(): Promise<{
   trendingWeekly: MediaItem[];

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tv, Loader2, ChevronDown } from 'lucide-react';
 import MediaCard from '../components/MediaCard';
-import { fetchTvShows, INDIAN_LANGUAGES } from '../services/tmdb';
+import { fetchTvShows, INDIAN_LANGUAGES, GLOBAL_LANGUAGES } from '../services/tmdb';
+import { getRegion } from '../services/storage';
+import { getRegionContentInfo } from '../constants/providers';
 import { MediaItem } from '../types';
 import { GENRES } from '../constants/genres';
 import { MediaGridSkeleton } from '../components/Skeletons';
@@ -22,14 +24,30 @@ const SeriesPage: React.FC = () => {
   const yearParam = searchParams.get('year') || '';
   const langParam = searchParams.get('lang') || 'all';
 
+  const [currentRegion, setCurrentRegion] = useState(() => getRegion());
   const [series, setSeries] = useState<MediaItem[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
+  // Listen for region change from Settings
+  useEffect(() => {
+    const handleRegionChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ region: string }>;
+      const newRegion = customEvent.detail?.region || getRegion();
+      setCurrentRegion(newRegion);
+    };
+    window.addEventListener('region-changed', handleRegionChange);
+    window.addEventListener('storage', handleRegionChange);
+    return () => {
+      window.removeEventListener('region-changed', handleRegionChange);
+      window.removeEventListener('storage', handleRegionChange);
+    };
+  }, []);
+
   useEffect(() => {
     setPage(1);
-  }, [genreParam, sortParam, yearParam, langParam]);
+  }, [genreParam, sortParam, yearParam, langParam, currentRegion]);
 
   useEffect(() => {
     let isMounted = true;
@@ -56,7 +74,7 @@ const SeriesPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [page, genreParam, sortParam, yearParam, langParam]);
+  }, [page, genreParam, sortParam, yearParam, langParam, currentRegion]);
 
   const handleLanguageChange = (code: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -94,6 +112,9 @@ const SeriesPage: React.FC = () => {
     setSearchParams(newParams);
   };
 
+  const contentInfo = getRegionContentInfo(currentRegion);
+  const languages = currentRegion === 'IN' ? INDIAN_LANGUAGES : GLOBAL_LANGUAGES;
+
   return (
     <div className="min-h-screen bg-black text-[#f5f5f7] pt-28 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -102,11 +123,11 @@ const SeriesPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-display tracking-tight">
-                Indian & Global TV Series
+                {contentInfo.seriesTitle}
               </h1>
             </div>
             <p className="text-zinc-400 text-xs sm:text-sm mt-1">
-              Stream Indian original web series, acclaimed crime thrillers, and television dramas in 4K HDR.
+              {contentInfo.seriesSubtitle}
             </p>
           </div>
 
@@ -158,9 +179,9 @@ const SeriesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Indian Languages Selector Pills */}
+        {/* Regional / Global Languages Selector Pills */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2 mb-8">
-          {INDIAN_LANGUAGES.map(lang => (
+          {languages.map(lang => (
             <button
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}

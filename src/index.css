@@ -80,14 +80,29 @@
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .apple-glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.85), 0 0 24px rgba(255, 255, 255, 0.06);
 }
+
+/* Apple TV Parallax Card Focus Effect */
+.apple-card-focus {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apple-card-focus:hover {
+  transform: scale3d(1.04, 1.04, 1);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.85), 
+              0 0 24px rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
 
 .apple-glass-nav {
   background: rgba(0, 0, 0, 0.65);
