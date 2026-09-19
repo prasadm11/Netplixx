@@ -339,7 +339,7 @@ const ShortsPage: React.FC = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="min-h-[calc(100dvh-5rem)] sm:min-h-screen bg-black pt-2 sm:pt-20 pb-2 sm:pb-10 flex items-center justify-center relative overflow-hidden text-[#f5f5f7] select-none touch-pan-x"
+      className="h-[100dvh] sm:min-h-screen bg-black p-0 sm:pt-20 sm:pb-10 flex items-center justify-center relative overflow-hidden text-[#f5f5f7] select-none touch-pan-x"
     >
       {/* Dynamic Ambient Background Blur based on current backdrop */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -358,10 +358,10 @@ const ShortsPage: React.FC = () => {
         </div>
       )}
 
-      <div className="relative z-10 flex items-center justify-center gap-6 max-w-xl w-full px-2 sm:px-4">
+      <div className="relative z-10 flex items-center justify-center gap-6 w-full h-full max-w-none p-0 sm:max-w-xl sm:px-4 sm:h-auto">
         {/* Main Vertical Video Container */}
         <div
-          className="relative w-full max-w-[420px] aspect-[9/16] max-h-[calc(100dvh-5.5rem)] sm:max-h-[82vh] bg-black rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.16] shadow-apple-card flex flex-col justify-between"
+          className="relative w-full h-full sm:max-w-[420px] sm:h-auto sm:aspect-[9/16] sm:max-h-[82vh] bg-black rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-white/[0.16] shadow-none sm:shadow-apple-card flex flex-col justify-between"
           style={{
             transform: `translateY(${dragY}px) scale(${1 - Math.abs(dragY) * 0.0006})`,
             transition: isSwiping ? 'none' : 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -424,7 +424,7 @@ const ShortsPage: React.FC = () => {
           </div>
 
           {/* Top Bar Header */}
-          <div className="relative z-20 p-3 sm:p-4 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/40 to-transparent">
+          <div className="relative z-20 px-3.5 sm:px-4 pt-[max(env(safe-area-inset-top),14px)] sm:pt-4 pb-3 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/40 to-transparent">
             <div className="flex items-center gap-2">
               <span className="apple-badge flex items-center gap-1 text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full font-semibold tracking-wider text-white">
                 <Sparkles className="w-3 h-3 text-[#2997ff]" />
@@ -450,7 +450,7 @@ const ShortsPage: React.FC = () => {
           </div>
 
           {/* Right Floating Actions (Likes, Watchlist, Share, Details) */}
-          <div className="absolute right-2.5 sm:right-3 bottom-24 sm:bottom-28 z-30 flex flex-col items-center gap-3 sm:gap-4">
+          <div className="absolute right-2.5 sm:right-3 bottom-44 sm:bottom-28 z-30 flex flex-col items-center gap-3 sm:gap-4">
             {/* Like */}
             <button
               onClick={() => handleToggleLike(currentShort.id)}
@@ -523,7 +523,7 @@ const ShortsPage: React.FC = () => {
           </div>
 
           {/* Bottom Info & Watch CTA */}
-          <div className="relative z-20 p-3 sm:p-4 bg-gradient-to-t from-black via-black/90 to-transparent pt-6 sm:pt-8">
+          <div className="relative z-20 p-3.5 sm:p-4 pb-[calc(4.75rem+env(safe-area-inset-bottom,0px))] sm:pb-4 bg-gradient-to-t from-black via-black/90 to-transparent pt-8 sm:pt-8">
             {/* Meta Tags & Ratings */}
             <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 flex-wrap">
               <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-[#f5c518] bg-black/60 px-2 py-0.5 rounded-md border border-white/10">

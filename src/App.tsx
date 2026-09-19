@@ -40,11 +40,11 @@ const App: React.FC = () => {
   const hideTabBar = isWatchPage;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#050505] text-white selection:bg-[#95FF50] selection:text-black">
+    <div className="flex flex-col min-h-screen bg-[#050505] text-white selection:bg-[#95FF50] selection:text-black w-full max-w-full overflow-x-clip">
       <ScrollToTop />
       {!hideNavbar && <Navbar />}
 
-      <main className={`flex-1 ${!hideTabBar ? 'pb-20 md:pb-0' : ''}`}>
+      <main className={`flex-1 ${!hideTabBar && !isShorts ? 'pb-20 md:pb-0' : ''}`}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/discover" element={<DiscoverPage />} />

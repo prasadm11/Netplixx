@@ -125,8 +125,8 @@ const WatchMoviePage: React.FC = () => {
   const writers = movie.credits?.crew?.filter((c: any) => ['Screenplay', 'Writer'].includes(c.job)) || [];
 
   return (
-    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-2 sm:pt-20 pb-16 sm:pb-24">
-      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-2 sm:pt-20 pb-16 sm:pb-24 w-full max-w-full overflow-x-clip">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 w-full max-w-full">
 
         {/* Apple TV Minimalist Breadcrumb Navigation */}
         <nav className="flex items-center justify-between gap-3 mb-2 sm:mb-5 px-3.5 sm:px-0">
@@ -156,15 +156,17 @@ const WatchMoviePage: React.FC = () => {
           </div>
         </nav>
 
-        {/* Apple Cinema Video Player (Full-bleed Edge-to-Edge on Mobile) */}
-        <VideoPlayer
-          tmdbId={movie.id}
-          mediaType="movie"
-          title={movie.title || 'Movie'}
-          poster_path={movie.poster_path}
-          backdrop_path={movie.backdrop_path}
-          relatedItems={movie.similar?.results || movie.recommendations?.results || []}
-        />
+        {/* Apple Cinema Video Player (Sticky on Mobile, Full-bleed Edge-to-Edge) */}
+        <div className="sticky top-0 z-40 bg-[#05070a] pb-2 sm:pb-0 sm:static sm:z-auto sm:bg-transparent transition-all shadow-[0_12px_28px_rgba(0,0,0,0.9)] sm:shadow-none">
+          <VideoPlayer
+            tmdbId={movie.id}
+            mediaType="movie"
+            title={movie.title || 'Movie'}
+            poster_path={movie.poster_path}
+            backdrop_path={movie.backdrop_path}
+            relatedItems={movie.similar?.results || movie.recommendations?.results || []}
+          />
+        </div>
 
         {/* Content chassis container with comfortable mobile padding */}
         <div className="px-3.5 sm:px-0">
@@ -232,7 +234,7 @@ const WatchMoviePage: React.FC = () => {
               </div>
 
               {/* Apple TV Action Capsule Row */}
-              <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
+              <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
                 <button
                   onClick={handleToggleWatchlist}
                   className={`flex items-center gap-1.5 px-3.5 sm:px-5 py-2 sm:py-3 rounded-full text-xs font-semibold sm:font-bold active:scale-95 transition-all ${inWatchlist

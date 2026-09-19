@@ -398,11 +398,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const embedServers = VIDEO_SERVERS.filter(s => !s.isDirect);
 
   return (
-    <div className={`relative z-20 w-full transition-all duration-700 ease-out ${isTheater ? 'max-w-none' : 'max-w-7xl mx-auto'}`}>
+    <div className={`relative z-20 w-full max-w-full overflow-x-clip sm:overflow-visible transition-all duration-700 ease-out ${isTheater ? 'max-w-none' : 'max-w-7xl mx-auto'}`}>
       {/* 1. Cinematic Apple Cinema Ambient Backlight Glow */}
       {backdrop_path && (
         <div
-          className="absolute -inset-6 sm:-inset-12 -z-10 rounded-[48px] opacity-40 blur-[90px] sm:blur-[130px] pointer-events-none transition-all duration-1000 transform-gpu overflow-hidden"
+          className="hidden sm:block absolute -inset-6 sm:-inset-12 -z-10 rounded-[48px] opacity-40 blur-[90px] sm:blur-[130px] pointer-events-none transition-all duration-1000 transform-gpu overflow-hidden"
           style={{
             backgroundImage: `url(${getBackdropUrl(backdrop_path, 'w780')})`,
             backgroundSize: 'cover'

@@ -119,10 +119,10 @@ export const DetailSkeleton: React.FC = () => (
 );
 
 export const ShortsSkeleton: React.FC = () => (
-  <div className="min-h-screen bg-black pt-20 pb-10 flex items-center justify-center relative text-white">
-    <div className="w-full max-w-[420px] aspect-[9/16] max-h-[82vh] bg-[#121214] rounded-3xl overflow-hidden border border-white/[0.12] relative flex flex-col justify-between p-6">
+  <div className="h-[100dvh] sm:min-h-screen bg-black p-0 sm:pt-20 sm:pb-10 flex items-center justify-center relative text-white">
+    <div className="w-full h-full sm:max-w-[420px] sm:h-auto sm:aspect-[9/16] sm:max-h-[82vh] bg-[#121214] rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-white/[0.12] relative flex flex-col justify-between p-4 sm:p-6 pb-20 sm:pb-6">
       <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/[0.05] to-transparent" />
-      <div className="flex justify-between items-center z-10">
+      <div className="flex justify-between items-center z-10 pt-[max(env(safe-area-inset-top),14px)] sm:pt-0">
         <div className="h-5 w-28 bg-white/[0.08] rounded-full animate-pulse" />
         <div className="w-9 h-9 rounded-full bg-white/[0.08] animate-pulse" />
       </div>
@@ -130,7 +130,7 @@ export const ShortsSkeleton: React.FC = () => (
         <div className="h-4 w-24 bg-white/[0.08] rounded-md animate-pulse" />
         <div className="h-6 w-3/4 bg-white/[0.1] rounded-xl animate-pulse" />
         <div className="h-3 w-full bg-white/[0.06] rounded animate-pulse" />
-        <div className="h-12 w-full bg-white/[0.15] rounded-2xl animate-pulse mt-2" />
+        <div className="h-12 w-full bg-white/[0.15] rounded-xl sm:rounded-2xl animate-pulse mt-2" />
       </div>
     </div>
   </div>
