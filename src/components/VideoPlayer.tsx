@@ -416,6 +416,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onMouseEnter={() => setIsPlayerFocused(true)}
         onMouseMove={() => setIsPlayerFocused(true)}
         onMouseLeave={() => setIsPlayerFocused(false)}
+        onTouchStart={() => setIsPlayerFocused(true)}
         className="group relative aspect-video w-full bg-[#05070a] rounded-none sm:rounded-[32px] overflow-hidden border-y sm:border border-white/[0.12] ring-0 sm:ring-1 sm:ring-white/[0.06] shadow-[0_20px_50px_rgba(0,0,0,0.9)] sm:shadow-[0_35px_100px_-20px_rgba(0,0,0,0.95)] transition-all duration-500"
       >
         {/* Apple TV Loading Indicator */}
@@ -475,10 +476,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           />
         )}
 
-        {/* Smart Scroll Forwarding Shield: active on touch/scroll, automatically yields on cursor movement */}
+        {/* Smart Scroll Forwarding Shield: active on desktop mouse wheel scroll, disabled on mobile so touches reach player directly */}
         {!isDirectPlaying && !isPlayerFocused && (
           <div
-            className="absolute inset-0 z-20 cursor-pointer select-none"
+            className="hidden sm:block absolute inset-0 z-20 cursor-pointer select-none"
             onMouseEnter={() => setIsPlayerFocused(true)}
             onMouseMove={() => setIsPlayerFocused(true)}
             onWheel={(e) => {
@@ -487,19 +488,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 left: e.deltaX,
                 behavior: 'auto'
               });
-            }}
-            onTouchStart={(e) => {
-              playerTouchStartY.current = e.touches[0].clientY;
-            }}
-            onTouchMove={(e) => {
-              if (playerTouchStartY.current !== null) {
-                const deltaY = playerTouchStartY.current - e.touches[0].clientY;
-                window.scrollBy({ top: deltaY, behavior: 'auto' });
-                playerTouchStartY.current = e.touches[0].clientY;
-              }
-            }}
-            onTouchEnd={() => {
-              playerTouchStartY.current = null;
             }}
             onClick={() => {
               setIsPlayerFocused(true);
