@@ -125,10 +125,18 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
             loading={idx === 0 ? 'eager' : 'lazy'}
           />
 
-          {/* Apple TV Vignette & Bottom Mask Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 via-45% to-transparent" />
-          <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent w-full lg:w-3/5" />
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 via-black/25 to-transparent" />
+          {/* Apple TV Preserved Poster Clarity & Feathering Gradients */}
+          {/* Bottom Edge Fade: Only feathers the bottom edge into the page content below */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 sm:h-52 bg-gradient-to-t from-black via-black/65 via-35% to-transparent pointer-events-none" />
+
+          {/* Left Text Scrim: Soft, directional scrim strictly behind text to leave 70% of backdrop vibrant and clear */}
+          <div className="hidden sm:block absolute inset-y-0 left-0 w-full sm:w-1/2 lg:w-[45%] bg-gradient-to-r from-black/75 via-black/25 to-transparent pointer-events-none" />
+
+          {/* Top Subtle Navbar Scrim: Minimal feathering for navbar readability without darkening the artwork */}
+          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+
+          {/* Mobile Full-Bleed Portrait Scrim */}
+          <div className="sm:hidden absolute inset-0 bg-gradient-to-t from-black via-black/70 via-45% to-transparent pointer-events-none" />
         </div>
       ))}
 
@@ -207,12 +215,12 @@ const HeroCarousel: React.FC<HeroCarouselProps> = ({ items }) => {
           </div>
 
           {/* Cinematic Large Title */}
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display drop-shadow-lg">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-2 sm:mb-3 font-display drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)]">
             {title}
           </h1>
 
           {/* Tagline / Overview */}
-          <p className="text-zinc-300 text-xs sm:text-base line-clamp-2 sm:line-clamp-3 mb-3.5 sm:mb-6 leading-relaxed max-w-xl font-normal drop-shadow">
+          <p className="text-zinc-200 text-xs sm:text-base line-clamp-2 sm:line-clamp-3 mb-3.5 sm:mb-6 leading-relaxed max-w-xl font-normal drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
             {current.overview || "Experience this critically acclaimed title in ultra-high definition with immersive spatial audio on Netplix."}
           </p>
 
