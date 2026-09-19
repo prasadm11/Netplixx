@@ -159,65 +159,67 @@ const WatchTvPage: React.FC = () => {
   const networks = series.networks || [];
 
   return (
-    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-2 sm:pt-20 pb-16 sm:pb-24 w-full max-w-full overflow-x-clip">
+    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-0 sm:pt-20 pb-16 sm:pb-24 w-full max-w-full overflow-x-clip">
       <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 w-full max-w-full">
 
-        {/* Apple TV Minimalist Breadcrumb / Header Navigation */}
-        <nav className="flex items-center justify-between gap-3 mb-2 sm:mb-5 px-3.5 sm:px-0">
-          {/* Mobile: Native Apple Pill Back & Episode Badge */}
-          <div className="flex sm:hidden items-center justify-between w-full h-8">
-            <Link
-              to={`/series/${series.id}`}
-              className="h-7 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] backdrop-blur-xl text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm truncate max-w-[210px] transition-all"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 -ml-1 text-zinc-400 shrink-0" />
-              <span className="truncate">{title}</span>
-            </Link>
-            <span className="px-2 py-0.5 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/35 text-[#2997ff] text-[10px] font-bold tracking-wide shrink-0">
-              S{seasonNum} • E{episodeNum}
-            </span>
-          </div>
+        {/* Cinema Video Deck: FIXED on mobile (never moves on scroll), standard flow on desktop */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-[#05070a] shadow-[0_12px_32px_rgba(0,0,0,0.95)] sm:static sm:z-auto sm:bg-transparent sm:shadow-none">
+          <div className="max-w-7xl mx-auto px-0 sm:px-0 w-full">
+            {/* Mobile Header: Back Pill & Episode Badge */}
+            <div className="flex sm:hidden items-center justify-between w-full h-9 px-3.5 pt-1.5 pb-0.5">
+              <Link
+                to={`/series/${series.id}`}
+                className="h-7 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] backdrop-blur-xl text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm truncate max-w-[210px] transition-all"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 -ml-1 text-zinc-400 shrink-0" />
+                <span className="truncate">{title}</span>
+              </Link>
+              <span className="px-2 py-0.5 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/35 text-[#2997ff] text-[10px] font-bold tracking-wide shrink-0">
+                S{seasonNum} • E{episodeNum}
+              </span>
+            </div>
 
-          {/* Desktop: Full path breadcrumbs */}
-          <div className="hidden sm:flex items-center gap-2 truncate text-xs text-zinc-400 font-medium">
-            <Link to="/" className="hover:text-white transition-colors">Discover</Link>
-            <span className="text-zinc-600">›</span>
-            <Link to="/series" className="hover:text-white transition-colors">TV Shows</Link>
-            <span className="text-zinc-600">›</span>
-            <Link to={`/series/${series.id}`} className="text-zinc-300 hover:text-white transition-colors truncate max-w-[220px]">
-              {title}
-            </Link>
-            <span className="text-zinc-600">›</span>
-            <span className="text-[#2997ff] font-semibold">
-              Season {seasonNum} • Episode {episodeNum}
-            </span>
-          </div>
-        </nav>
+            {/* Desktop: Breadcrumbs */}
+            <nav className="hidden sm:flex items-center gap-2 truncate text-xs text-zinc-400 font-medium mb-5 px-0">
+              <Link to="/" className="hover:text-white transition-colors">Discover</Link>
+              <span className="text-zinc-600">›</span>
+              <Link to="/series" className="hover:text-white transition-colors">TV Shows</Link>
+              <span className="text-zinc-600">›</span>
+              <Link to={`/series/${series.id}`} className="text-zinc-300 hover:text-white transition-colors truncate max-w-[220px]">
+                {title}
+              </Link>
+              <span className="text-zinc-600">›</span>
+              <span className="text-[#2997ff] font-semibold">
+                Season {seasonNum} • Episode {episodeNum}
+              </span>
+            </nav>
 
-        {/* Apple Cinema Video Player (Sticky on Mobile, Full-bleed Edge-to-Edge) */}
-        <div className="sticky top-0 z-40 bg-[#05070a] pb-2 sm:pb-0 sm:static sm:z-auto sm:bg-transparent transition-all shadow-[0_12px_28px_rgba(0,0,0,0.9)] sm:shadow-none">
-          <VideoPlayer
-            tmdbId={series.id}
-            mediaType="tv"
-            season={seasonNum}
-            episode={episodeNum}
-            title={title}
-            poster_path={series.poster_path}
-            backdrop_path={series.backdrop_path}
-            episodeName={currentEpisodeObj?.name}
-            hasNextEpisode={hasNextEpisode}
-            hasPrevEpisode={hasPrevEpisode}
-            onNextEpisode={handleNextEpisode}
-            onPrevEpisode={handlePrevEpisode}
-            episodes={episodes}
-            seasons={series.seasons}
-            onSelectEpisode={(s, ep) => navigate(`/watch/tv/${id}/${s}/${ep}`)}
-            relatedItems={series.similar?.results || series.recommendations?.results || []}
-          />
+            {/* Video Player */}
+            <div className="pb-2 sm:pb-0">
+              <VideoPlayer
+                tmdbId={series.id}
+                mediaType="tv"
+                season={seasonNum}
+                episode={episodeNum}
+                title={title}
+                poster_path={series.poster_path}
+                backdrop_path={series.backdrop_path}
+                episodeName={currentEpisodeObj?.name}
+                hasNextEpisode={hasNextEpisode}
+                hasPrevEpisode={hasPrevEpisode}
+                onNextEpisode={handleNextEpisode}
+                onPrevEpisode={handlePrevEpisode}
+                episodes={episodes}
+                seasons={series.seasons}
+                onSelectEpisode={(s, ep) => navigate(`/watch/tv/${id}/${s}/${ep}`)}
+                relatedItems={series.similar?.results || series.recommendations?.results || []}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Content chassis container with comfortable mobile padding */}
-        <div className="px-3.5 sm:px-0">
+        {/* Content chassis container with comfortable mobile padding (spaced below fixed mobile player) */}
+        <div className="px-3.5 sm:px-0 pt-[calc(56.25vw+82px)] sm:pt-0">
 
         {/* Main Episode Presentation Chassis & Episode Drawer */}
         <div className="mt-2.5 sm:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">

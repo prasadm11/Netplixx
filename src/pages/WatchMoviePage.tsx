@@ -125,51 +125,53 @@ const WatchMoviePage: React.FC = () => {
   const writers = movie.credits?.crew?.filter((c: any) => ['Screenplay', 'Writer'].includes(c.job)) || [];
 
   return (
-    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-2 sm:pt-20 pb-16 sm:pb-24 w-full max-w-full overflow-x-clip">
+    <div className="min-h-screen bg-[#05070a] text-[#f5f5f7] pt-0 sm:pt-20 pb-16 sm:pb-24 w-full max-w-full overflow-x-clip">
       <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 w-full max-w-full">
 
-        {/* Apple TV Minimalist Breadcrumb Navigation */}
-        <nav className="flex items-center justify-between gap-3 mb-2 sm:mb-5 px-3.5 sm:px-0">
-          {/* Mobile: Native Apple Pill Back & Playing Badge */}
-          <div className="flex sm:hidden items-center justify-between w-full h-8">
-            <Link
-              to={`/movie/${movie.id}`}
-              className="h-7 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] backdrop-blur-xl text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm truncate max-w-[210px] transition-all"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 -ml-1 text-zinc-400 shrink-0" />
-              <span className="truncate">{movie.title}</span>
-            </Link>
-            <span className="px-2 py-0.5 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/35 text-[#2997ff] text-[10px] font-bold tracking-wide shrink-0">
-              Now Playing
-            </span>
-          </div>
+        {/* Cinema Video Deck: FIXED on mobile (never moves on scroll), standard flow on desktop */}
+        <div className="fixed top-0 left-0 right-0 z-40 bg-[#05070a] shadow-[0_12px_32px_rgba(0,0,0,0.95)] sm:static sm:z-auto sm:bg-transparent sm:shadow-none">
+          <div className="max-w-7xl mx-auto px-0 sm:px-0 w-full">
+            {/* Mobile Header: Back Pill & Now Playing Badge */}
+            <div className="flex sm:hidden items-center justify-between w-full h-9 px-3.5 pt-1.5 pb-0.5">
+              <Link
+                to={`/movie/${movie.id}`}
+                className="h-7 px-2.5 rounded-full bg-white/[0.08] hover:bg-white/[0.14] active:scale-95 border border-white/[0.12] backdrop-blur-xl text-white text-[11px] font-semibold inline-flex items-center gap-1 shadow-sm truncate max-w-[210px] transition-all"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 -ml-1 text-zinc-400 shrink-0" />
+                <span className="truncate">{movie.title}</span>
+              </Link>
+              <span className="px-2 py-0.5 rounded-full bg-[#0071e3]/20 border border-[#0071e3]/35 text-[#2997ff] text-[10px] font-bold tracking-wide shrink-0">
+                Now Playing
+              </span>
+            </div>
 
-          {/* Desktop: Full path breadcrumbs */}
-          <div className="hidden sm:flex items-center gap-2 truncate text-xs text-zinc-400 font-medium">
-            <Link to="/" className="hover:text-white transition-colors">Discover</Link>
-            <span className="text-zinc-600">›</span>
-            <Link to="/movies" className="hover:text-white transition-colors">Movies</Link>
-            <span className="text-zinc-600">›</span>
-            <span className="text-zinc-300 truncate max-w-[260px]">{movie.title}</span>
-            <span className="text-zinc-600">›</span>
-            <span className="text-[#2997ff] font-semibold">Now Playing</span>
-          </div>
-        </nav>
+            {/* Desktop: Breadcrumbs */}
+            <nav className="hidden sm:flex items-center gap-2 truncate text-xs text-zinc-400 font-medium mb-5 px-0">
+              <Link to="/" className="hover:text-white transition-colors">Discover</Link>
+              <span className="text-zinc-600">›</span>
+              <Link to="/movies" className="hover:text-white transition-colors">Movies</Link>
+              <span className="text-zinc-600">›</span>
+              <span className="text-zinc-300 truncate max-w-[260px]">{movie.title}</span>
+              <span className="text-zinc-600">›</span>
+              <span className="text-[#2997ff] font-semibold">Now Playing</span>
+            </nav>
 
-        {/* Apple Cinema Video Player (Sticky on Mobile, Full-bleed Edge-to-Edge) */}
-        <div className="sticky top-0 z-40 bg-[#05070a] pb-2 sm:pb-0 sm:static sm:z-auto sm:bg-transparent transition-all shadow-[0_12px_28px_rgba(0,0,0,0.9)] sm:shadow-none">
-          <VideoPlayer
-            tmdbId={movie.id}
-            mediaType="movie"
-            title={movie.title || 'Movie'}
-            poster_path={movie.poster_path}
-            backdrop_path={movie.backdrop_path}
-            relatedItems={movie.similar?.results || movie.recommendations?.results || []}
-          />
+            {/* Video Player */}
+            <div className="pb-2 sm:pb-0">
+              <VideoPlayer
+                tmdbId={movie.id}
+                mediaType="movie"
+                title={movie.title || 'Movie'}
+                poster_path={movie.poster_path}
+                backdrop_path={movie.backdrop_path}
+                relatedItems={movie.similar?.results || movie.recommendations?.results || []}
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Content chassis container with comfortable mobile padding */}
-        <div className="px-3.5 sm:px-0">
+        {/* Content chassis container with comfortable mobile padding (spaced below fixed mobile player) */}
+        <div className="px-3.5 sm:px-0 pt-[calc(56.25vw+82px)] sm:pt-0">
 
         {/* Apple TV+ Movie Hero Presentation Chassis */}
         <div className="mt-2.5 sm:mt-8 rounded-2xl sm:rounded-3xl bg-[#121215]/75 sm:bg-[#121215]/85 backdrop-blur-3xl border border-white/[0.08] shadow-[0_15px_40px_rgba(0,0,0,0.85)] p-3.5 sm:p-10 relative z-10 overflow-hidden">
