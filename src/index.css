@@ -1,0 +1,270 @@
+/* ==========================================================================
+   NETPLIX — MINIMAL, PURPOSE-BUILT DESIGN SYSTEM
+   Zero clutter, clean spacing, ultra-focused on product & download.
+   ========================================================================== */
+
+:root {
+  --bg-black: #000000;
+  --bg-surface: #0a0a0c;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+
+  --text-primary: #ffffff;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #636366;
+
+  --accent-blue: #2997ff;
+  --accent-red: #ff2a54;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background-color: var(--bg-black);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  max-width: 100vw;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 16px;
+  }
+}
+
+/* Primary Download Button (White on Black) */
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: #ffffff;
+  color: #000000;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: var(--radius-full);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-download:hover {
+  background: #f2f2f7;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.btn-download:active {
+  transform: translateY(0);
+}
+
+/* Secondary Button (Frosted Dark) */
+.btn-web {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.btn-web:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-hover);
+}
+
+/* Navbar links */
+.nav-web-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.86rem;
+  color: #cbd5e1;
+  border-radius: var(--radius-full);
+  transition: color 0.2s ease;
+}
+
+.nav-web-link:hover {
+  color: #ffffff;
+}
+
+/* Minimal Card */
+.card-minimal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  transition: border-color 0.2s ease;
+}
+
+.card-minimal:hover {
+  border-color: var(--border-hover);
+}
+
+/* Phone Mockup Frame */
+.device-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.device-bezel {
+  background: #0d0e12;
+  border: 7px solid #1a1c24;
+  border-radius: 46px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 24px 70px -15px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 9 / 19.5;
+}
+
+.device-screen-scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.device-screen-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.camera-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  background: #000000;
+  border-radius: 50%;
+  border: 1.5px solid #161820;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Hero Layout */
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+
+.hero-text-col {
+  grid-column: span 7;
+}
+
+.hero-device-col {
+  grid-column: span 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mobile-btn-text {
+  display: none;
+}
+
+/* Responsive utilities */
+@media (max-width: 900px) {
+  .hero-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  .hero-text-col {
+    text-align: center;
+    width: 100%;
+  }
+  .hero-text-col p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-text-col > div {
+    justify-content: center !important;
+  }
+  .hero-device-col {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .desktop-btn-text {
+    display: none !important;
+  }
+  .mobile-btn-text {
+    display: inline !important;
+  }
+  .device-wrapper {
+    max-width: 290px;
+  }
+  .hero-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100%;
+  }
+  .hero-actions .btn-download,
+  .hero-actions .btn-web {
+    width: 100% !important;
+    padding: 12px 16px !important;
+    font-size: 0.92rem !important;
+  }
+}
